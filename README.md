@@ -68,63 +68,64 @@ export const AFFILIATE = {
 
 ### 3. CMS 后台（见下节）
 
-## 🖥️ CMS 后台部署
+## 🖥️ CMS 后台使用
 
 后台在 `/admin/`，用 **Sveltia CMS**（Decap/Netlify CMS 的现代替代品，
-通过 unpkg CDN 加载，无需构建步骤）。
+通过 unpkg CDN 加载，无需构建步骤）。仓库已推到
+[`fusifen/hostinger`](https://github.com/fusifen/hostinger)。
 
-**当前状态：文件已就位，但还不能用** —— 因为它是 Git-based CMS，
-必须先把仓库推到 GitHub，并配一个 OAuth 代理。
+**有两种用法，按需选：**
 
-### 步骤 1：推到 GitHub
+---
 
-```bash
-git init
-git add .
-git commit -m "初始化站点"
-git remote add origin git@github.com:<你的用户名>/<仓库名>.git
-git push -u origin main
-```
+### 方式 A：本地模式 —— **现在就能用，零配置** ✅
 
-> 本机直连 GitHub 需要走代理，已在全局配置里设好（v2rayN，HTTP 端口 10809）。
-> 推送卡死时见文末「常见问题」。
+Sveltia 内置了本地文件系统模式（基于 Chromium 的 File System Access API），
+**不需要 OAuth 代理、不需要登录**，直接编辑本地文件。
 
-### 步骤 2：改 `public/admin/config.yml`
+1. `npm run dev`
+2. **用 Chrome / Edge**（Firefox、Safari 不支持）打开
+   <http://localhost:4321/admin/index.html>
+   > ⚠️ 一定要带 `index.html`，否则 Astro 会当成路由处理
+3. 点 **「Work with Local Repository」** → 选择项目根目录
+   （`D:\Project\hostinger\mechanical-meteor`）
+4. 开始编辑。改动**直接写进本地文件**，预览即时生效
+5. 改完用 git 自己提交推送（CMS 不代做 git 操作）：
+   ```bash
+   git diff          # 先看改了什么
+   git add -A && git commit -m "content: 更新 xxx"
+   git push
+   ```
 
-```yaml
-backend:
-  name: github
-  repo: <你的用户名>/<仓库名>   # ← 改这里
-  branch: main
-  base_url: <你的 OAuth 代理地址>  # ← 改这里，见步骤 3
-```
+**适用**：自己写内容、批量改价格、调 CMS 配置。
+**不支持**：在手机/别的电脑上远程编辑。
 
-### 步骤 3：部署 OAuth 代理
+---
 
-GitHub OAuth 需要一个服务端来交换 token，Sveltia 官方提供了
-[`sveltia-cms-auth`](https://github.com/sveltia/sveltia-cms-auth)：
-一键部署到 Cloudflare Workers，免费额度完全够用。
+### 方式 B：远程登录 —— 需要配 OAuth 代理
 
-部署完成后把它给你的地址填进 `base_url`。
+想让后台能在线登录（随时随地改内容、自动 commit），才需要这一套。
 
-> **用 Netlify 托管的话**可以省掉这一步 —— Netlify 自带 OAuth，
-> 用它的公共实例即可。
+GitHub OAuth 需要服务端交换 token，用 Sveltia 官方的
+[`sveltia-cms-auth`](https://github.com/sveltia/sveltia-cms-auth)
+部署到 Cloudflare Workers（免费额度够用）。
 
-### 步骤 4：配置 GitHub OAuth App
+**完整分步操作见 → [`../oauth-proxy/SETUP.md`](../oauth-proxy/SETUP.md)**
 
-在 GitHub → Settings → Developer settings → OAuth Apps 新建一个：
+三步概览：
 
-- **Homepage URL**：你的站点地址
-- **Authorization callback URL**：你的 OAuth 代理地址 + `/callback`
+1. 建 GitHub OAuth App（[Developer settings](https://github.com/settings/developers)），
+   拿到 Client ID / Secret
+2. `cd ../oauth-proxy && npx wrangler login && npx wrangler deploy`，
+   然后 `wrangler secret put GITHUB_CLIENT_ID`（再 put 一次 SECRET）
+3. 把 Worker 地址填进本仓库 `public/admin/config.yml` 的 `base_url`，
+   并把站点域名加进 `oauth-proxy/wrangler.toml` 的 `ALLOWED_DOMAINS`
 
-把生成的 Client ID / Secret 填进 OAuth 代理的环境变量。
+> **用 Netlify 托管**可以省掉整套 —— Netlify 自带 OAuth。
 
-### 步骤 5：验证
+---
 
-访问 `https://你的域名/admin/`，点「Login with GitHub」，
-授权后应该能看到「文章」「Hostinger 套餐」「优惠码」等集合。
-
-**支持的编辑能力**：
+### 后台能编辑什么
 
 - **文章** —— 标题、摘要、缩略图（媒体库）、发布时间、分类下拉、Markdown 正文、
   作者、标签、FAQ 列表、`draft` 开关（开启则不进构建产物）
@@ -135,6 +136,8 @@ GitHub OAuth 需要一个服务端来交换 token，Sveltia 官方提供了
 
 > 💡 **图片会自动转 WebP 并压到 2000px 宽**（在 `media_libraries.transformations`
 > 里配置），避免运营上传 5MB 原图拖垮站点。
+>
+> 💡 改完 CMS 配置（`config.yml`）后需要**重新加载后台页面**才会生效。
 
 ## 📁 项目结构
 

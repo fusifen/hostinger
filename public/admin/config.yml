@@ -2,21 +2,25 @@
 #  Sveltia CMS 配置 —— HostingerPick 内容管理后台
 #  文档：https://github.com/sveltia/sveltia-cms
 #
-#  ⚠️ 当前状态：文件已就位，但**后台还不能登录**。
-#     Sveltia 是 Git-based CMS，必须满足两个前提：
-#       1. 仓库已推送到 GitHub（当前 git 还没有 remote）
-#       2. 有一个 OAuth 代理来换取 GitHub token
-#     完整部署步骤见项目根目录 README.md 的「CMS 后台部署」一节。
+#  ✅ 现在就能用（本地模式，无需任何额外配置）：
+#     1. npm run dev
+#     2. Chrome/Edge 打开 http://localhost:4321/admin/index.html
+#     3. 点「Work with Local Repository」→ 选择项目根目录
+#     直接开始编辑，改动写进本地文件，用 git 自己提交。
+#
+#  ⚠️ 想让后台能远程登录（在线改内容、自动提交），才需要配下面的 OAuth：
+#     推仓库 → 部署 OAuth 代理 → 改 base_url。
+#     完整步骤见 D:\Project\hostinger\oauth-proxy\SETUP.md
 # ══════════════════════════════════════════════════════════════
 
 backend:
   name: github
-  repo: fusifen/hostinger # ← 【必改】你的 GitHub 仓库，格式 用户名/仓库名
+  repo: fusifen/hostinger # ✅ 已填写
   branch: main
-  # 【必改】OAuth 代理地址。GitHub OAuth 需要服务端交换 token，
+  # 【仅远程登录需要】OAuth 代理地址。GitHub OAuth 需要服务端交换 token，
   # 用 Sveltia 官方的 sveltia-cms-auth（一键部署到 Cloudflare Workers，免费）：
   #   https://github.com/sveltia/sveltia-cms-auth
-  # 部署后把拿到的地址填在这里。若托管在 Netlify，可直接用其公共实例。
+  # 不配也能用本地模式，见文件顶部说明。
   base_url: https://sveltia-cms-auth.example.workers.dev
   commit_messages:
     create: 'cms: 新增 {{collection}} "{{slug}}"'
