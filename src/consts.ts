@@ -75,10 +75,29 @@ export const AFFILIATE = {
  *    建议：去联盟后台确认/新建各产品线的落地页，然后把真实 url_id 填到这里。
  *    在拿到各产品线的专属 url_id 之前，**默认走 1**（共享主机页，是主力流量）。
  */
+/**
+ * 各产品线对应的联盟落地页 ID（`url_id`）。
+ *
+ * ⚠️ 这些值是 **2026-09-16 用 `curl -L` 实测**出来的，不是猜的：
+ *
+ *   url_id=1~10  → /web-hosting          共享主机
+ *   url_id=68    → /uk/web-hosting       共享主机（UK 站）
+ *   url_id=69    → /uk/cloud-hosting     Cloud Hosting
+ *   url_id=70    → /uk/vps-hosting       VPS
+ *   url_id=60~67,71~75 → /ro /co /mx /id … 各国站首页（不是产品页，别用）
+ *
+ * 注意 hostg.xyz 的 offer_id=6 默认落的是 **UK 站**，
+ * 所以 UK 页反而是最"原生"的落地页；共享主机用 1 会跳到主站（无 /uk 前缀），
+ * 两者都能正常归因，按你想展示的定价币种选即可。
+ *
+ * 若日后联盟后台改了落地页配置，用这条命令重测：
+ *   for id in 1 68 69 70; do curl -s -o /dev/null -w "$id %{url_effective}\n" -L \
+ *     "https://www.hostg.xyz/aff_c?offer_id=6&aff_id=109714&url_id=$id"; done
+ */
 export const AFFILIATE_URL_IDS: Record<string, string> = {
   shared: '1',
   vps: '70',
-  cloud: '1',
+  cloud: '69',
   builder: '1',
   domains: '1',
   email: '1',
