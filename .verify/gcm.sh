@@ -1,2 +1,0 @@
-#!/bin/sh
-exec "C:/Program Files/Git/mingw64/bin/git-credential-manager.exe" "$@"

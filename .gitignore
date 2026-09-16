@@ -22,3 +22,6 @@ pnpm-debug.log*
 
 # jetbrains setting folder
 .idea/
+
+# 本机凭据包装脚本（含本地绝对路径，不入库）
+.verify/
