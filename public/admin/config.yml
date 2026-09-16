@@ -78,7 +78,7 @@ collections:
         field: category
         pattern: tutorials
       - label: 优惠
-        field: deals
+        field: category
         pattern: deals
       - label: 对比
         field: category
@@ -325,7 +325,7 @@ collections:
       - { name: relatedReviews, label: 相关评测文章, widget: list, required: false, default: [] }
 
       - { name: active, label: 在售（下架则关闭）, widget: boolean, default: true }
-      - { name: lastChecked, label: 价格核验日期, widget: date, date_format: 'YYYY-MM-DD' }
+      - { name: lastChecked, label: 价格核验日期, widget: datetime, type: date, date_format: 'YYYY-MM-DD' }
 
   # ──────────────────────────────────────────────
   #  优惠码
@@ -359,11 +359,11 @@ collections:
                   - { label: Cloud Hosting, value: cloud }
                   - { label: Website Builder, value: builder }
               - { name: autoApplied, label: 自动生效（无需输入码）, widget: boolean, default: false }
-              - { name: expiresAt, label: 有效期截止, widget: date, date_format: 'YYYY-MM-DD', required: false }
+              - { name: expiresAt, label: 有效期截止, widget: datetime, type: date, date_format: 'YYYY-MM-DD', required: false }
               - { name: featured, label: 置顶推荐, widget: boolean, default: false }
               - { name: steps, label: 使用步骤, widget: list, default: [] }
               - { name: verified, label: 已验证有效, widget: boolean, default: true, hint: '每次核验后更新这个开关' }
-              - { name: lastChecked, label: 核验日期, widget: date, date_format: 'YYYY-MM-DD' }
+              - { name: lastChecked, label: 核验日期, widget: datetime, type: date, date_format: 'YYYY-MM-DD' }
 
   # ──────────────────────────────────────────────
   #  竞品对比
