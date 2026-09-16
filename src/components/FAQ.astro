@@ -1,0 +1,67 @@
+---
+/**
+ * FAQ —— 手风琴式常见问题
+ * 自动输出 FAQPage 结构化数据（对搜索引擎的富摘要至关重要）
+ */
+import Icon from './Icon.astro';
+
+interface Props {
+  faqs: { question: string; answer: string }[];
+  title?: string;
+  subtitle?: string;
+  /** 是否输出 JSON-LD 结构化数据（同一页面只应输出一次） */
+  emitSchema?: boolean;
+  class?: string;
+}
+
+const {
+  faqs = [],
+  title = '常见问题',
+  subtitle,
+  emitSchema = true,
+  class: className = '',
+} = Astro.props;
+
+const schema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: faqs.map((f) => ({
+    '@type': 'Question',
+    name: f.question,
+    acceptedAnswer: { '@type': 'Answer', text: f.answer },
+  })),
+};
+---
+
+<section class:list={['', className]} aria-labelledby="faq-heading">
+  <div class="mb-6">
+    <span class="eyebrow">
+      <Icon name="lightbulb" size={14} />
+      FAQ
+    </span>
+    <h2 id="faq-heading" class="mt-2.5 text-h2 font-bold">{title}</h2>
+    {subtitle && <p class="mt-2 max-w-2xl text-[0.9375rem] leading-relaxed text-soft">{subtitle}</p>}
+  </div>
+
+  <div class="space-y-2.5">
+    {
+      faqs.map((faq) => (
+        <details class="group/faq overflow-hidden rounded-xl border border-[var(--hairline)] bg-white transition-all duration-200 open:border-brand-200 open:shadow-soft hover:border-brand-200">
+          <summary class="flex cursor-pointer list-none items-start justify-between gap-4 px-5 py-4">
+            <span class="text-[0.9375rem] font-semibold leading-snug text-strong">{faq.question}</span>
+            <span class="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-50 text-brand-600 transition-transform duration-200 group-open/faq:rotate-45">
+              <Icon name="plus" size={15} />
+            </span>
+          </summary>
+          <div class="px-5 pb-5 pt-0">
+            <p class="border-t border-[var(--hairline)] pt-4 text-[0.875rem] leading-relaxed text-body">
+              {faq.answer}
+            </p>
+          </div>
+        </details>
+      ))
+    }
+  </div>
+</section>
+
+{emitSchema && faqs.length > 0 && <script type="application/ld+json" set:html={JSON.stringify(schema)} />}

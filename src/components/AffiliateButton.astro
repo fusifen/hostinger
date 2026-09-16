@@ -1,0 +1,71 @@
+---
+/**
+ * AffiliateButton —— 全站统一的联盟转化按钮
+ *
+ * 所有指向 Hostinger 的外链都必须经过这个组件，
+ * 确保联盟参数、rel 属性、utm 归因永远一致。
+ */
+import Icon from './Icon.astro';
+import { affiliateUrl, dealUrl, AFFILIATE } from '../consts';
+
+interface Props {
+  /** 产品大类，决定落地页路径 */
+  category?: string;
+  /** 活动标识，写入 utm_content 便于后台归因 */
+  campaign?: string;
+  /** 覆盖套餐自带的优惠码 */
+  coupon?: string;
+  /** 按钮文案 */
+  label?: string;
+  /** 尺寸 */
+  size?: 'sm' | 'md' | 'lg';
+  /** 视觉风格 */
+  variant?: 'primary' | 'accent' | 'outline' | 'ghost';
+  /** 是否铺满宽度 */
+  block?: boolean;
+  /** 是否在按钮内展示优惠码 */
+  showCoupon?: boolean;
+  class?: string;
+}
+
+const {
+  category,
+  campaign,
+  coupon,
+  label = '领取优惠',
+  size = 'md',
+  variant = 'primary',
+  block = false,
+  showCoupon = true,
+  class: className = '',
+} = Astro.props;
+
+const code = coupon ?? AFFILIATE.couponCode;
+const href = dealUrl(category, campaign);
+
+const sizeClass = size === 'lg' ? 'btn-lg' : size === 'sm' ? 'btn-sm' : '';
+const variantClass = `btn-${variant}`;
+---
+
+<a
+  href={href}
+  target="_blank"
+  rel="sponsored noopener noreferrer"
+  data-affiliate={campaign ?? category ?? 'general'}
+  class:list={['btn', variantClass, sizeClass, block && 'btn-block', 'group/cta', className]}
+>
+  <span>{label}</span>
+  {showCoupon && code && (
+    <span
+      class="rounded-full bg-white/20 px-2 py-0.5 font-mono text-[0.7rem] tracking-wider"
+      aria-label={`优惠码 ${code}`}
+    >
+      {code}
+    </span>
+  )}
+  <Icon
+    name="arrowUpRight"
+    size={16}
+    class="transition-transform duration-200 group-hover/cta:-translate-y-0.5 group-hover/cta:translate-x-0.5"
+  />
+</a>

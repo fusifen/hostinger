@@ -1,0 +1,162 @@
+---
+/**
+ * ArticleCard —— 文章卡片（形态分发器）
+ * 三种形态：
+ *   default —— 网格卡片（列表页）
+ *   compact —— 侧边栏相关文章（渲染 ArticleCardCompact）
+ *   hero    —— 首屏精选横向大卡（渲染 ArticleCardHero）
+ *
+ * 说明：Astro 的 frontmatter 不支持 JSX 早返回，因此各形态拆成独立组件，
+ *       本组件只负责计算派生数据与分发。
+ */
+import Icon from './Icon.astro';
+import ArticleCardCompact from './ArticleCardCompact.astro';
+import ArticleCardHero from './ArticleCardHero.astro';
+import { getCategory } from '../consts';
+
+interface Props {
+  article: {
+    id: string;
+    data: {
+      title: string;
+      description: string;
+      excerpt?: string;
+      pubDate: Date;
+      updatedDate?: Date;
+      author: string;
+      category: string;
+      tags: string[];
+      theme: string;
+      featured: boolean;
+      readingTime?: number;
+      featuredPlan?: string;
+    };
+  };
+  /** 该文章的访问路径 */
+  href: string;
+  variant?: 'default' | 'compact' | 'hero';
+  class?: string;
+}
+
+const { article, href, variant = 'default', class: className = '' } = Astro.props;
+const d = article.data;
+const cat = getCategory(d.category);
+
+const themeGradient: Record<string, string> = {
+  'gradient-1': 'from-brand-600 via-brand-500 to-accent-500',
+  'gradient-2': 'from-brand-700 via-brand-500 to-brand-300',
+  'gradient-3': 'from-accent-600 via-accent-500 to-brand-500',
+  'gradient-4': 'from-brand-800 via-brand-600 to-accent-400',
+  'gradient-5': 'from-ink-800 via-brand-700 to-brand-500',
+  'gradient-6': 'from-accent-700 via-brand-600 to-brand-400',
+};
+
+const gradient = themeGradient[d.theme] ?? themeGradient['gradient-1'];
+
+const accentClass: Record<string, string> = {
+  violet: 'badge-brand',
+  sky: 'badge-neutral',
+  amber: 'badge-gold',
+  emerald: 'badge-accent',
+  rose: 'badge-deal',
+};
+
+const readTime = d.readingTime ?? Math.max(3, Math.round(d.description.length / 60));
+const dateStr = d.pubDate.toLocaleDateString('zh-CN', {
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+});
+---
+
+{
+  variant === 'compact' ? (
+    <ArticleCardCompact
+      href={href}
+      title={d.title}
+      dateStr={dateStr}
+      readTime={readTime}
+      category={d.category}
+      theme={d.theme}
+      class={className}
+    />
+  ) : variant === 'hero' ? (
+    <ArticleCardHero
+      href={href}
+      title={d.title}
+      excerpt={d.excerpt ?? d.description}
+      dateStr={dateStr}
+      readTime={readTime}
+      author={d.author}
+      category={d.category}
+      theme={d.theme}
+      featured={d.featured}
+      class={className}
+    />
+  ) : (
+    <article
+      class:list={[
+        'group relative flex flex-col overflow-hidden rounded-2xl border border-[var(--hairline)] bg-white shadow-[var(--shadow-soft)] transition-all duration-300 hover:-translate-y-1 hover:border-brand-200 hover:shadow-[var(--shadow-lift)]',
+        className,
+      ]}
+    >
+      <a href={href} class="flex flex-1 flex-col">
+        {/* 封面（渐变兜底，避免无图时卡片显得空洞） */}
+        <div class:list={['relative h-40 overflow-hidden bg-gradient-to-br', gradient]}>
+          <div class="bg-grid absolute inset-0 opacity-20 transition-transform duration-500 group-hover:scale-105" />
+          <div class="absolute inset-x-0 bottom-0 flex items-end justify-between p-4">
+            <span class:list={['badge', accentClass[cat?.color ?? 'violet']]}>
+              {cat?.label ?? '文章'}
+            </span>
+            <span class="inline-flex items-center gap-1 rounded-full bg-black/25 px-2.5 py-1 text-[0.65rem] font-semibold text-white backdrop-blur">
+              <Icon name="clock" size={11} />
+              {readTime} 分钟
+            </span>
+          </div>
+          {d.featured && (
+            <span class="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-gold-400 px-2.5 py-1 text-[0.65rem] font-bold text-[#6b4400] shadow-sm">
+              <Icon name="award" size={11} />
+              精选
+            </span>
+          )}
+        </div>
+
+        <div class="flex flex-1 flex-col p-5">
+          <h3 class="line-clamp-2 text-[1rem] font-bold leading-snug text-[var(--text-strong)] transition-colors group-hover:text-brand-700">
+            {d.title}
+          </h3>
+
+          <p class="mt-2.5 line-clamp-3 flex-1 text-[0.8125rem] leading-relaxed text-[var(--text-soft)]">
+            {d.excerpt ?? d.description}
+          </p>
+
+          {/* 标签 */}
+          {d.tags.length > 0 && (
+            <div class="mt-4 flex flex-wrap gap-1.5">
+              {d.tags.slice(0, 3).map((tag) => (
+                <span class="rounded-md bg-[var(--surface-muted)] px-2 py-0.5 text-[0.65rem] font-medium text-[var(--text-soft)]">
+                  #{tag}
+                </span>
+              ))}
+            </div>
+          )}
+
+          <div class="mt-4 flex items-center justify-between gap-3 border-t border-[var(--hairline)] pt-3.5">
+            <span class="inline-flex items-center gap-1.5 text-[0.7rem] text-[var(--text-faint)]">
+              <Icon name="calendar" size={12} />
+              {dateStr}
+            </span>
+            <span class="inline-flex items-center gap-1 text-[0.75rem] font-semibold text-brand-600">
+              查看
+              <Icon
+                name="arrowRight"
+                size={13}
+                class="transition-transform group-hover:translate-x-0.5"
+              />
+            </span>
+          </div>
+        </div>
+      </a>
+    </article>
+  )
+}

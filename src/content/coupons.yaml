@@ -1,0 +1,108 @@
+- id: main-30off-10
+  code: 30OFF
+  title: 全站通用额外 10% 折扣
+  description: 本站专属优惠码，叠加在 Hostinger 官网现有促销价之上的额外折扣，适用于共享主机、VPS 与 Cloud Hosting 的全部套餐。结账页「Have a coupon code?」处输入即可实时生效。
+  discount: 额外 10%
+  appliesTo:
+    - shared
+    - vps
+    - cloud
+    - builder
+  autoApplied: false
+  expiresAt: 2026-12-31
+  featured: true
+  verified: true
+  lastChecked: 2026-09-16
+  steps:
+    - 点击本站任意「领取优惠」按钮进入 Hostinger 官网，促销价会自动带上
+    - 选择套餐时长（推荐 48 个月，月均最低）
+    - 在结账页找到「Have a coupon code?」并输入 30OFF
+    - 确认订单金额已额外减少 10% 后再付款
+
+- id: auto-48months-75
+  code: AUTO
+  title: 48 个月付立省 75%
+  description: Hostinger 官方最长周期的阶梯折扣，无需任何优惠码，选择 48 个月付款时长即可自动享受。这是官网长期在售的最大力度折扣，可与 30OFF 叠加使用。
+  discount: 省 75%
+  appliesTo:
+    - shared
+    - cloud
+    - builder
+  autoApplied: true
+  featured: true
+  verified: true
+  lastChecked: 2026-09-16
+  steps:
+    - 进入套餐选购页
+    - 在「付款时长」选项中选择 48 个月
+    - 价格会自动切换到最低月均价
+
+- id: auto-vps-24months-59
+  code: AUTO
+  title: 24 个月付 VPS 立省 59%
+  description: VPS 产品线的官方阶梯折扣，24 个月付款时长自动享受。VPS 由于含独立 IP 与 root 权限，折扣力度低于共享主机属正常。
+  discount: 省 59%
+  appliesTo:
+    - vps
+  autoApplied: true
+  featured: false
+  verified: true
+  lastChecked: 2026-09-16
+  steps:
+    - 进入 VPS 选购页
+    - 选择 24 个月付款时长
+    - 折扣自动应用
+
+- id: freedomain-free
+  code: FREEDOMAIN
+  title: 免费赠送 1 年 .com 域名
+  description: Premium 及以上套餐均包含一年免费域名。注意域名首年免费，续费按标准价计算 —— 建议在续费前评估是否转移到更便宜的注册商。
+  discount: 价值 ¥75
+  appliesTo:
+    - shared
+    - cloud
+    - builder
+  autoApplied: true
+  featured: false
+  verified: true
+  lastChecked: 2026-09-16
+  steps:
+    - 选购 Premium / Business / Cloud Startup 及以上套餐
+    - 在域名绑定步骤选择「注册新域名」
+    - 首年费用自动减免为 0
+
+- id: auto-30day-refund
+  code: AUTO
+  title: 30 天无理由退款保障
+  description: 所有主机套餐都享有 30 天退款保证，不满意可全额退回。这是评估主机质量最实用的「免费试用」窗口 —— 建议在付款后立即做速度和稳定性实测。
+  discount: 30 天保障
+  appliesTo:
+    - shared
+    - vps
+    - cloud
+    - builder
+  autoApplied: true
+  featured: false
+  verified: true
+  lastChecked: 2026-09-16
+  steps:
+    - 购买任意套餐
+    - 在 30 天内通过 hPanel 客服提交退款申请
+    - 款项原路退回（通常 3 到 7 个工作日）
+
+- id: migrate-free-service
+  code: MIGRATE
+  title: 免费网站迁移服务
+  description: Premium 及以上套餐提供免费迁移。Hostinger 的迁移不是让你自己搬文件，而是提交工单后由技术团队代为完成，包含数据库与邮箱账户。
+  discount: 免费
+  appliesTo:
+    - shared
+    - cloud
+  autoApplied: true
+  featured: false
+  verified: true
+  lastChecked: 2026-09-16
+  steps:
+    - 购买 Premium 及以上套餐
+    - 在 hPanel 中提交迁移工单，填写旧主机访问信息
+    - 等待技术团队完成迁移（通常 24 小时内）

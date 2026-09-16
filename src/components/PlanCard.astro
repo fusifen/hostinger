@@ -1,0 +1,192 @@
+---
+/**
+ * PlanCard —— 单个套餐卡片
+ * 设计目标：在 3 秒内传达「多少钱 / 有什么用 / 为什么选它」
+ */
+import Icon from './Icon.astro';
+import Stars from './Stars.astro';
+import AffiliateButton from './AffiliateButton.astro';
+import { affiliateUrl, AFFILIATE, RENEWAL_DISPLAY } from '../consts';
+
+interface Props {
+  plan: {
+    id: string;
+    data: {
+      name: string;
+      fullName: string;
+      category: string;
+      tagline: string;
+      pricing: {
+        promoPrice: number;
+        regularPrice: number;
+        renewalPrice: number;
+        termLabel: string;
+        currency: string;
+        upfrontTotal?: number;
+      };
+      rating: number;
+      reviewCount: number;
+      bestValue: boolean;
+      recommended: boolean;
+      websites: string;
+      storage: string;
+      bandwidth: string;
+      specs: { label: string; value: string; note?: string }[];
+      features: { label: string; included: boolean; note?: string }[];
+      discountBadge?: string;
+      freebies: string[];
+      moneyBackDays: number;
+      affiliate: { landingPath?: string; couponCode?: string; campaign?: string };
+      verdict: string;
+      bestFor: string;
+      caveat?: string;
+    };
+  };
+  /** 是否展开显示完整规格（对比页使用） */
+  expanded?: boolean;
+}
+
+const { plan, expanded = false } = Astro.props;
+const d = plan.data;
+const p = d.pricing;
+
+const savePercent = Math.round((1 - p.promoPrice / p.regularPrice) * 100);
+const coupon = d.affiliate.couponCode ?? AFFILIATE.couponCode;
+
+const cardClass = d.bestValue
+  ? 'relative rounded-2xl border-2 border-brand-500 bg-white shadow-[0_4px_8px_rgb(28_28_46/0.05),0_24px_48px_-12px_rgb(103_61_230/0.22)]'
+  : 'relative rounded-2xl border border-[var(--hairline)] bg-white shadow-soft transition-shadow duration-300 hover:shadow-card';
+---
+
+<article class:list={[cardClass, 'flex flex-col']}>
+  {/* 顶部推荐标签 */}
+  {
+    d.bestValue && (
+      <div class="absolute -top-3.5 left-1/2 -translate-x-1/2">
+        <span class="badge bg-brand-600 text-white shadow-[0_4px_14px_-2px_rgb(103_61_230/0.55)]">
+          <Icon name="award" size={13} />
+          最超值
+        </span>
+      </div>
+    )
+  }
+
+  <div class="flex flex-1 flex-col p-6 pt-7">
+    {/* 套餐名 + 副标题 */}
+    <header class="mb-5">
+      <div class="flex items-start justify-between gap-3">
+        <div>
+          <h3 class="text-xl font-bold text-strong">{d.name}</h3>
+          <p class="mt-1 text-sm leading-snug text-soft">{d.tagline}</p>
+        </div>
+        {d.recommended && !d.bestValue && (
+          <span class="badge badge-accent shrink-0">
+            <Icon name="check-circle" size={13} />
+            推荐
+          </span>
+        )}
+      </div>
+      <div class="mt-3">
+        <Stars rating={d.rating} count={d.reviewCount} size={13} showValue />
+      </div>
+    </header>
+
+    {/* 价格区 —— 转化的核心 */}
+    <div class="mb-5 rounded-xl bg-brand-50/60 p-4">
+      <div class="flex items-end gap-2">
+        <span class="text-sm font-medium text-soft">{p.currency}</span>
+        <span class="price-now text-[2.5rem] leading-none">{p.promoPrice}</span>
+        <span class="mb-1 text-sm text-soft">/ 月</span>
+      </div>
+
+      <div class="mt-2.5 flex flex-wrap items-center gap-2 text-xs">
+        <span class="price-was">{p.currency}{p.regularPrice}/月</span>
+        <span class="badge badge-deal">
+          <Icon name="trending-down" size={12} />
+          省 {savePercent}%
+        </span>
+      </div>
+
+      {
+        p.upfrontTotal && (
+          <p class="mt-2 text-xs text-soft">
+            {p.termLabel}付一次性 {p.currency}
+            {p.upfrontTotal.toLocaleString()}
+            <span class="mx-1.5 text-ink-300">·</span>
+            <span class="text-faint">续费 {p.currency}{p.renewalPrice}/月</span>
+          </p>
+        )
+      }
+    </div>
+
+    {/* 赠品提示 —— 高转化元素 */}
+    {
+      d.freebies.length > 0 && (
+        <div class="mb-5 space-y-1.5">
+          {d.freebies.slice(0, 2).map((f) => (
+            <p class="flex items-start gap-2 text-[0.8125rem] font-medium text-accent-700">
+              <Icon name="sparkles" size={14} class="mt-0.5 shrink-0" />
+              <span>{f}</span>
+            </p>
+          ))}
+        </div>
+      )
+    }
+
+    {/* 核心规格 */}
+    <dl class="mb-5 space-y-2 border-t border-[var(--hairline)] pt-5">
+      {
+        d.specs.slice(0, expanded ? d.specs.length : 5).map((s) => (
+          <div class="flex items-baseline justify-between gap-3 text-sm">
+            <dt class="text-soft">{s.label}</dt>
+            <dd class="text-right font-semibold text-strong">
+              {s.value}
+              {s.note && <span class="ml-1 text-[0.7rem] font-normal text-faint">{s.note}</span>}
+            </dd>
+          </div>
+        ))
+      }
+    </dl>
+
+    {/* 权益清单 */}
+    {expanded && (
+      <ul class="mb-5 space-y-2 border-t border-[var(--hairline)] pt-5">
+        {d.features.map((f) => (
+          <li class="flex items-start gap-2 text-sm">
+            <Icon
+              name={f.included ? 'check-circle' : 'x-circle'}
+              size={15}
+              class:list={['mt-0.5 shrink-0', f.included ? 'text-accent-500' : 'text-ink-300']}
+            />
+            <span class:list={[f.included ? 'text-body' : 'text-faint line-through']}>
+              {f.label}
+              {f.note && <span class="ml-1 text-[0.7rem] text-faint">（{f.note}）</span>}
+            </span>
+          </li>
+        ))}
+      </ul>
+    )}
+
+    {/* 专家结论 —— 建立信任 */}
+    <div class="mt-auto">
+      <p class="mb-4 border-l-2 border-brand-300 pl-3 text-[0.8125rem] leading-relaxed text-soft">
+        {d.verdict}
+      </p>
+
+      <AffiliateButton
+        category={d.category}
+        campaign={d.affiliate.campaign}
+        coupon={coupon}
+        label={d.bestValue ? '立即抢购' : '领取优惠'}
+        variant={d.bestValue ? 'primary' : 'outline'}
+        block
+        size="md"
+      />
+
+      <p class="mt-3 text-center text-[0.7rem] text-faint">
+        <Icon name="shield-check" size={12} class="mr-1 inline align-[-1px]" />
+        {d.moneyBackDays} 天无理由退款
+      </p>
+    </div>
+  </div>
+</article>

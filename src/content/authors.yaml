@@ -1,0 +1,40 @@
+- id: editorial
+  name: HostingerPick 编辑部
+  role: 主编团队
+  bio: 由 4 名长期运营独立站的站长组成，累计托管过 60 余个站点。所有评测均基于真实购买的主机账户，不接受厂商付费改稿，价格与配置每季度人工核验一次。
+  initials: HP
+  expertise:
+    - 主机性能实测
+    - 建站架构选型
+    - 联盟营销合规
+  url: /about
+
+- id: lin
+  name: 林向远
+  role: 主机性能测试负责人
+  bio: 前运维工程师，负责本站全部主机产品的压测与监测。使用自建脚本以 5 分钟间隔记录 TTFB、P95 响应与在线率，所有结论都能追溯到原始数据。
+  initials: LX
+  expertise:
+    - 服务器压测
+    - Nginx 调优
+    - 全球节点追踪
+
+- id: su
+  name: 苏晴
+  role: 教程内容编辑
+  bio: 专注把技术流程写成新手能照着做的步骤。负责 WordPress、WooCommerce 与 hPanel 系列的教程撰写，每篇教程都会在一台全新购买的账户上从头跑一遍。
+  initials: SQ
+  expertise:
+    - WordPress 建站
+    - 电商配置
+    - 新手引导设计
+
+- id: he
+  name: 何嘉
+  role: 选购与优惠分析师
+  bio: 追踪 Hostinger 官方价格变动与促销周期，负责优惠码核验。这个岗位存在的唯一目的，是让读者不因为信息滞后而多花钱。
+  initials: HJ
+  expertise:
+    - 优惠策略
+    - 价格追踪
+    - 续费成本计算

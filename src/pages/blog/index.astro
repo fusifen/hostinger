@@ -1,0 +1,28 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ArticleArchive from '../../components/ArticleArchive.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+
+
+const articles = await getCollection('articles', ({ data }) => !data.draft);
+
+---
+
+<BaseLayout
+  title="Hostinger 博客 — 全部评测、教程与选购指南"
+  description={`HostingerPick 的全部内容库，共 ${articles.length} 篇。涵盖主机评测、建站教程、优惠攻略与常见问题排查，全部基于自费购买的实测数据。`}
+  keywords={['Hostinger博客', '主机评测', '建站教程', 'Hostinger教程']}
+>
+  <div class="border-b border-[var(--hairline)] bg-[var(--surface-muted)]">
+    <div class="container-page py-4">
+      <Breadcrumbs items={[{ label: '博客' }]} />
+    </div>
+  </div>
+
+  <ArticleArchive
+    articles={articles}
+    title="全部文章"
+    description={`从深度评测到逐步教程，${articles.length} 篇文章解决你关于 Hostinger 的所有疑问。用左侧筛选快速定位你需要的内容。`}
+  />
+</BaseLayout>

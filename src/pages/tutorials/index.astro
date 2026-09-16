@@ -1,0 +1,81 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ArticleArchive from '../../components/ArticleArchive.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import Icon from '../../components/Icon.astro';
+
+
+const articles = await getCollection(
+  'articles',
+  ({ data }) => !data.draft && data.category === 'tutorials',
+);
+
+
+const stages = [
+  { icon: 'rocket', title: '第一步：买对套餐', text: '按预算与用途选档位，避免买高或买低', href: '/reviews/hostinger-shared-hosting-review' },
+  { icon: 'wrench', title: '第二步：完成建站', text: '从绑定域名到发布第一篇内容', href: '/tutorials/build-wordpress-site-on-hostinger' },
+  { icon: 'terminal', title: '第三步：配置环境', text: 'hPanel 面板、数据库、邮箱、SSL', href: '/tutorials/hpanel-complete-guide' },
+  { icon: 'zap', title: '第四步：优化性能', text: '缓存、OPcache、Redis 与图片优化', href: '/tutorials/cyberpanel-vps-setup' },
+];
+---
+
+<BaseLayout
+  title="Hostinger 建站教程 — 从购买到上线的完整流程"
+  description={`${articles.length} 篇 Hostinger 实操教程。每篇都在全新购买的账户上从头跑过一遍，包含具体命令、截图位置与常见卡点的排查方法。`}
+  keywords={['Hostinger教程', 'WordPress建站教程', 'hPanel教程', 'VPS教程', '建站教程']}
+>
+  <div class="border-b border-[var(--hairline)] bg-[var(--surface-muted)]">
+    <div class="container-page py-4">
+      <Breadcrumbs items={[{ label: '建站教程' }]} />
+    </div>
+  </div>
+
+  <section class="relative overflow-hidden border-b border-[var(--hairline)]">
+    <div class="bg-radial-brand pointer-events-none absolute inset-0"></div>
+    <div class="container-page relative py-12 lg:py-14">
+      <div class="max-w-3xl">
+        <span class="eyebrow">
+          <Icon name="book" size={14} />
+          每篇都在全新账户上跑过一遍
+        </span>
+        <h1 class="mt-3.5 text-h1 font-extrabold">Hostinger 建站教程</h1>
+        <p class="mt-5 text-[1.0625rem] leading-relaxed text-soft">
+          教程最容易失效的地方是"作者凭记忆写的"。我们的做法是：每写一篇教程，
+          就新买一个账户，从零跑完整流程，记录每一步的实际界面与耗时，包括卡住的地方。
+        </p>
+      </div>
+
+      {/* 学习路径 */}
+      <div class="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {
+          stages.map((s, i) => (
+            <a href={s.href} class="group card card-hover flex flex-col p-5">
+              <div class="flex items-center justify-between">
+                <span class="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-100 text-brand-700 transition-colors group-hover:bg-brand-600 group-hover:text-white">
+                  <Icon name={s.icon} size={17} />
+                </span>
+                <span class="text-[1.5rem] font-extrabold leading-none text-[var(--hairline)]">
+                  0{i + 1}
+                </span>
+              </div>
+              <h2 class="mt-3.5 text-[0.9375rem] font-bold text-strong">{s.title}</h2>
+              <p class="mt-1.5 flex-1 text-[0.75rem] leading-relaxed text-soft">{s.text}</p>
+              <span class="mt-3 inline-flex items-center gap-1 text-[0.75rem] font-semibold text-brand-600">
+                开始阅读
+                <Icon name="arrowRight" size={13} class="transition-transform group-hover:translate-x-0.5" />
+              </span>
+            </a>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <ArticleArchive
+    articles={articles}
+    title="全部教程"
+    description="按分类或标签筛选。"
+    fixedCategory="tutorials"
+  />
+</BaseLayout>

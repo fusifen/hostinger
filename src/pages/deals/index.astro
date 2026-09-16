@@ -1,0 +1,177 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ArticleArchive from '../../components/ArticleArchive.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import CouponCard from '../../components/CouponCard.astro';
+import AffiliateButton from '../../components/AffiliateButton.astro';
+import Icon from '../../components/Icon.astro';
+import { AFFILIATE } from '../../consts';
+
+const articles = await getCollection(
+  'articles',
+  ({ data }) => !data.draft && data.category === 'deals',
+);
+
+const coupons = await getCollection('coupons');
+const featured = coupons.filter((c) => c.data.featured);
+const others = coupons.filter((c) => !c.data.featured);
+
+---
+
+<BaseLayout
+  title="Hostinger 优惠专区 — 实测有效的优惠码与折扣攻略"
+  description={`Hostinger 最新优惠与折扣策略。当前可叠加优惠码 ${AFFILIATE.couponCode}（额外 10%），48 个月付立省 75%，含免费域名与商务邮箱。所有优惠码均在结账页实际验证过生效。`}
+  keywords={['Hostinger优惠码', 'Hostinger折扣', 'Hostinger优惠', 'Hostinger怎么买便宜']}
+>
+  <div class="border-b border-[var(--hairline)] bg-[var(--surface-muted)]">
+    <div class="container-page py-4">
+      <Breadcrumbs items={[{ label: '优惠专区' }]} />
+    </div>
+  </div>
+
+  {/* 主优惠横幅 */}
+  <section class="border-b border-[var(--hairline)] bg-brand-950">
+    <div class="container-page py-12 lg:py-14">
+      <div class="flex flex-col items-start justify-between gap-8 lg:flex-row lg:items-center">
+        <div class="max-w-2xl">
+          <span class="badge bg-accent-500 text-white">
+            <Icon name="zap" size={13} />
+            当前最优组合
+          </span>
+          <h1 class="mt-4 text-h1 font-extrabold text-white">
+            48 个月付立省 75%，叠加优惠码再省 10%
+          </h1>
+          <p class="mt-4 text-[1.0625rem] leading-relaxed text-brand-200">
+            这是目前 Hostinger 在售的最大力度折扣组合。选最长付款时长拿到官方阶梯折扣，
+            再在结账页输入专属优惠码叠加。共享主机月均可低至 ¥20 上下。
+          </p>
+
+          <div class="mt-6 flex flex-wrap items-center gap-3">
+            <AffiliateButton
+              category="shared"
+              campaign="deals-hero"
+              label="领取优惠"
+              size="lg"
+              variant="accent"
+            />
+            <a
+              href="/tutorials/how-to-get-cheapest-hostinger"
+              class="btn btn-lg !text-white ring-1 ring-inset ring-white/25 hover:!bg-white/10"
+            >
+              <Icon name="book" size={18} />
+              省钱完整攻略
+            </a>
+          </div>
+        </div>
+
+        <div class="grid shrink-0 grid-cols-2 gap-3 lg:grid-cols-1">
+          {
+            [
+              ['75%', '阶梯折扣'],
+              ['10%', '优惠码叠加'],
+              ['2 年', '免费域名 + 邮箱'],
+              ['30 天', '无理由退款'],
+            ].map(([v, l]) => (
+              <div class="rounded-xl bg-white/10 px-4 py-3 backdrop-blur lg:min-w-[168px]">
+                <p class="text-[1.25rem] font-extrabold leading-none text-white tabular-nums">{v}</p>
+                <p class="mt-1 text-[0.7rem] font-medium text-brand-200">{l}</p>
+              </div>
+            ))
+          }
+        </div>
+      </div>
+    </div>
+  </section>
+
+  {/* 推荐优惠码 */}
+  <section class="container-page py-14">
+    <div class="flex flex-wrap items-end justify-between gap-5">
+      <div class="max-w-2xl">
+        <span class="eyebrow">
+          <Icon name="award" size={14} />
+          重点推荐
+        </span>
+        <h2 class="mt-3 text-h2 font-bold">两个立刻能用的优惠</h2>
+        <p class="mt-3.5 text-[0.9375rem] leading-relaxed text-soft">
+          这两个是我们当前最推荐的：一个是可叠加的额外折扣，一个是无需操作的官方阶梯折扣。
+        </p>
+      </div>
+      <a href="/coupons" class="btn btn-outline">
+        全部优惠码
+        <Icon name="arrowRight" size={16} />
+      </a>
+    </div>
+
+    <div class="mt-10 grid gap-5 md:grid-cols-2">
+      {featured.map((c) => <CouponCard coupon={c as any} />)}
+    </div>
+  </section>
+
+  {/* 其他优惠 */}
+  {
+    others.length > 0 && (
+      <section class="border-y border-[var(--hairline)] bg-[var(--surface-muted)] py-14">
+        <div class="container-page">
+          <div class="max-w-2xl">
+            <h2 class="text-h2 font-bold">其他常年有效的优惠</h2>
+            <p class="mt-3 text-[0.9375rem] leading-relaxed text-soft">
+              这些不是折扣券，而是产品本身附带的权益——很多人不知道它们的存在。
+            </p>
+          </div>
+          <div class="mt-9 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+            {others.map((c) => <CouponCard coupon={c as any} />)}
+          </div>
+        </div>
+      </section>
+    )
+  }
+
+  {/* 省钱文章 */}
+  <section class="container-page py-4">
+    <ArticleArchive
+      articles={articles}
+      title="优惠与选购攻略"
+      description="理解 Hostinger 的定价机制，比找到某个神秘优惠码更能长期省钱。"
+      fixedCategory="deals"
+    />
+  </section>
+
+  {/* 使用提醒 */}
+  <section class="border-t border-[var(--hairline)] bg-[var(--surface-muted)] py-14">
+    <div class="container-page">
+      <div class="mx-auto max-w-3xl">
+        <h2 class="text-h2 font-bold">使用优惠码的三个注意事项</h2>
+        <div class="mt-8 grid gap-5 md:grid-cols-3">
+          {
+            [
+              {
+                icon: 'list',
+                title: '顺序很重要',
+                text: `先把付款时长选到 48 个月（拿到官方阶梯折扣），再到结账页输入优惠码 ${AFFILIATE.couponCode}。反过来操作可能导致折扣不叠加。`,
+              },
+              {
+                icon: 'refresh',
+                title: '只对新购生效',
+                text: '优惠码一般只对新购订单有效，续费时无法使用。所以要在续费节点前主动决策：退款重买、降级或换主机。',
+              },
+              {
+                icon: 'info',
+                title: '价格不会因佣金变高',
+                text: '通过本站链接购买，你支付的价格与直接访问 Hostinger 购买完全相同。佣金由 Hostinger 支付，不从你的订单里扣。',
+              },
+            ].map((item) => (
+              <div class="card p-6">
+                <span class="flex h-10 w-10 items-center justify-center rounded-lg bg-brand-100 text-brand-700">
+                  <Icon name={item.icon} size={19} />
+                </span>
+                <h3 class="mt-4 text-[1rem] font-bold text-strong">{item.title}</h3>
+                <p class="mt-2.5 text-[0.8125rem] leading-relaxed text-soft">{item.text}</p>
+              </div>
+            ))
+          }
+        </div>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

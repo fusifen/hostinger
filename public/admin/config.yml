@@ -1,0 +1,413 @@
+# ══════════════════════════════════════════════════════════════
+#  Sveltia CMS 配置 —— HostingerPick 内容管理后台
+#  文档：https://github.com/sveltia/sveltia-cms
+#
+#  ⚠️ 当前状态：文件已就位，但**后台还不能登录**。
+#     Sveltia 是 Git-based CMS，必须满足两个前提：
+#       1. 仓库已推送到 GitHub（当前 git 还没有 remote）
+#       2. 有一个 OAuth 代理来换取 GitHub token
+#     完整部署步骤见项目根目录 README.md 的「CMS 后台部署」一节。
+# ══════════════════════════════════════════════════════════════
+
+backend:
+  name: github
+  repo: fusifen/hostinger # ← 【必改】你的 GitHub 仓库，格式 用户名/仓库名
+  branch: main
+  # 【必改】OAuth 代理地址。GitHub OAuth 需要服务端交换 token，
+  # 用 Sveltia 官方的 sveltia-cms-auth（一键部署到 Cloudflare Workers，免费）：
+  #   https://github.com/sveltia/sveltia-cms-auth
+  # 部署后把拿到的地址填在这里。若托管在 Netlify，可直接用其公共实例。
+  base_url: https://sveltia-cms-auth.example.workers.dev
+  commit_messages:
+    create: 'cms: 新增 {{collection}} "{{slug}}"'
+    update: 'cms: 更新 {{collection}} "{{slug}}"'
+    delete: 'cms: 删除 {{collection}} "{{slug}}"'
+    uploadMedia: 'cms: 上传媒体 "{{path}}"'
+    deleteMedia: 'cms: 删除媒体 "{{path}}"'
+
+# 站点为中文，编辑界面使用中文
+locale: zh_Hans
+publish_mode: editorial_workflow # 支持草稿 → 审核 → 发布的工作流
+show_preview_links: true
+
+# 媒体存放位置：与 Astro 的图片优化管线对齐
+media_folder: src/assets/uploads
+public_folder: /uploads
+media_libraries:
+  default:
+    media_folder: src/assets/uploads
+    public_folder: /uploads
+    # 图片压缩：Sveltia 内置，避免运营上传 5MB 的原图
+    transformations:
+      raster_image:
+        format: webp
+        quality: 85
+        width: 2000
+
+# ══════════════════════════════════════════════════════════════
+#  集合定义
+# ══════════════════════════════════════════════════════════════
+
+collections:
+  # ──────────────────────────────────────────────
+  #  文章
+  # ──────────────────────────────────────────────
+  - name: articles
+    label: 文章
+    label_singular: 文章
+    description: 评测、教程、优惠与常见问题类内容
+    folder: src/content/articles
+    nested:
+      # 按分类分目录，与路由结构保持一致
+      depth: 2
+      summary: '{{category}} / {{title}}'
+    slug: '{{slug}}'
+    create: true
+    preview_path: '{{fields.category}}/{{slug}}'
+    summary: '{{title}}'
+    sortable_fields: ['pubDate', 'title', 'updatedDate']
+    view_filters:
+      - label: 评测
+        field: category
+        pattern: reviews
+      - label: 教程
+        field: category
+        pattern: tutorials
+      - label: 优惠
+        field: deals
+        pattern: deals
+      - label: 对比
+        field: category
+        pattern: comparison
+      - label: 常见问题
+        field: category
+        pattern: faq
+      - label: 草稿
+        field: draft
+        pattern: true
+      - label: 精选
+        field: featured
+        pattern: true
+    fields:
+      - { name: title, label: 标题, widget: string, hint: '控制在 60 字内，包含用户会搜索的关键词' }
+      - {
+          name: description,
+          label: SEO 描述,
+          widget: text,
+          hint: '控制在 160 字符内，会显示在搜索结果与分享卡片上',
+        }
+      - {
+          name: excerpt,
+          label: 摘要（列表页用）,
+          widget: text,
+          required: false,
+          hint: '一句话概括，不填则使用 SEO 描述',
+        }
+
+      - { name: pubDate, label: 发布时间, widget: datetime, date_format: 'YYYY-MM-DD', time_format: false, picker_utc: true }
+      - { name: updatedDate, label: 更新时间, widget: datetime, date_format: 'YYYY-MM-DD', time_format: false, required: false, picker_utc: true }
+
+      - name: author
+        label: 作者
+        widget: select
+        default: HostingerPick 编辑部
+        options:
+          - HostingerPick 编辑部
+          - 林向远
+          - 苏晴
+          - 何嘉
+
+      - name: category
+        label: 分类
+        widget: select
+        options:
+          - { label: 主机评测, value: reviews }
+          - { label: 建站教程, value: tutorials }
+          - { label: 优惠与选购, value: deals }
+          - { label: 对比评测, value: comparison }
+          - { label: 常见问题, value: faq }
+
+      - { name: tags, label: 标签, widget: list, default: [], hint: '每个标签一个条目，3 到 5 个为宜' }
+
+      - {
+          name: heroImage,
+          label: 特色图,
+          widget: image,
+          required: false,
+          media_library: { config: default },
+          hint: '不填则使用渐变封面，建议 1600×900',
+        }
+      - { name: heroImageAlt, label: 特色图替代文本, widget: string, required: false }
+
+      - name: theme
+        label: 封面渐变色
+        widget: select
+        default: gradient-1
+        hint: '未上传特色图时使用的渐变风格'
+        options:
+          - { label: 品牌紫 → 青绿, value: gradient-1 }
+          - { label: 深紫 → 浅紫, value: gradient-2 }
+          - { label: 青绿 → 品牌紫, value: gradient-3 }
+          - { label: 深紫 → 青绿, value: gradient-4 }
+          - { label: 墨黑 → 品牌紫, value: gradient-5 }
+          - { label: 深青 → 品牌紫, value: gradient-6 }
+
+      # ── 转化字段 ──
+      - {
+          name: affiliateNotice,
+          label: 显示联盟披露声明,
+          widget: boolean,
+          default: true,
+          hint: '评测与优惠类文章必须开启，这是合规要求',
+        }
+      - {
+          name: featuredPlan,
+          label: 推荐套餐 ID,
+          widget: string,
+          required: false,
+          hint: '例如 shared-premium / vps-kvm2，决定文章侧边栏与文末横幅展示哪个套餐',
+        }
+      - { name: ctaHeadline, label: CTA 标题覆盖, widget: string, required: false }
+      - { name: ctaBody, label: CTA 正文覆盖, widget: text, required: false }
+
+      # ── FAQ ──
+      - name: faqs
+        label: 常见问题
+        label_singular: 问题
+        widget: list
+        required: false
+        default: []
+        summary: '{{fields.question}}'
+        hint: '会输出 FAQPage 结构化数据，有助于搜索结果的富摘要展示'
+        fields:
+          - { name: question, label: 问题, widget: string }
+          - { name: answer, label: 回答, widget: text, hint: '2 到 4 句，直接给结论' }
+
+      # ── 站点结构 ──
+      - { name: featured, label: 设为精选, widget: boolean, default: false, hint: '精选文章会出现在首页推荐位' }
+      - { name: draft, label: 草稿（不发布）, widget: boolean, default: false }
+      - { name: readingTime, label: 阅读时长（分钟）, widget: number, required: false, value_type: int, min: 1, max: 60 }
+      - { name: keywords, label: SEO 关键词, widget: list, required: false, default: [] }
+      - {
+          name: related,
+          label: 手动指定相关文章,
+          widget: list,
+          required: false,
+          default: [],
+          hint: '填写文章的文件名（不含扩展名），留空则自动按分类和标签推荐',
+        }
+
+      - { name: body, label: 正文, widget: markdown, hint: '支持 Markdown 与代码块，表格语法可直接使用' }
+
+  # ──────────────────────────────────────────────
+  #  产品套餐（可视化编辑价格与配置）
+  # ──────────────────────────────────────────────
+  - name: hostinger_plans
+    label: 产品套餐
+    label_singular: 套餐
+    description: Hostinger 各产品线的套餐配置、价格与权益
+    folder: src/content/hostinger-plans
+    extension: yaml
+    format: yaml
+    create: true
+    slug: '{{fields.category}}-{{fields.name}}'
+    identifier_field: fullName
+    summary: '{{fullName}} — ¥{{fields.pricing.promoPrice}}/月'
+    sortable_fields: ['category', 'order', 'pricing.promoPrice']
+    view_filters:
+      - { label: 共享主机, field: category, pattern: shared }
+      - { label: VPS, field: category, pattern: vps }
+      - { label: Cloud, field: category, pattern: cloud }
+      - { label: Builder, field: category, pattern: builder }
+      - { label: 最超值, field: bestValue, pattern: true }
+      - { label: 已下架, field: active, pattern: false }
+    fields:
+      - { name: name, label: 套餐短名, widget: string, hint: '例如 Premium / KVM 2' }
+      - { name: fullName, label: 套餐全名, widget: string, hint: '例如 Hostinger Premium 共享主机' }
+
+      - name: category
+        label: 产品大类
+        widget: select
+        options:
+          - { label: 共享虚拟主机, value: shared }
+          - { label: VPS 主机, value: vps }
+          - { label: Cloud Hosting, value: cloud }
+          - { label: Website Builder, value: builder }
+
+      - { name: series, label: 系列名, widget: string, hint: '例如 Shared / KVM / Cloud / Builder' }
+      - { name: order, label: 排序权重, widget: number, default: 100, value_type: int, hint: '数字越小越靠前' }
+      - { name: tagline, label: 一句话卖点, widget: string, hint: '卡片头部展示，控制在 20 字内' }
+
+      # ── 定价 ──
+      - name: pricing
+        label: 定价（人民币）
+        widget: object
+        fields:
+          - {
+              name: promoPrice,
+              label: 促销价（月均）,
+              widget: number,
+              value_type: float,
+              hint: '❗ 改这里就改全站价格，务必与官网核验一致',
+            }
+          - { name: regularPrice, label: 原价（月均）, widget: number, value_type: float }
+          - { name: renewalPrice, label: 续费价（月均）, widget: number, value_type: float, hint: '必须如实填写，这是建立信任的关键' }
+          - { name: termLabel, label: 付款时长文案, widget: string, default: '48 个月' }
+          - { name: currency, label: 币种符号, widget: string, default: '¥' }
+          - { name: upfrontTotal, label: 一次性支付总额, widget: number, value_type: float, required: false }
+
+      - { name: rating, label: 编辑评分, widget: number, value_type: float, default: 4.6, min: 0, max: 5, step: 0.1 }
+      - { name: reviewCount, label: 评价数, widget: number, value_type: int, default: 0 }
+      - { name: bestValue, label: 标记为「最超值」, widget: boolean, default: false, hint: '每个大类只应有一个' }
+      - { name: recommended, label: 编辑部推荐, widget: boolean, default: false }
+
+      - name: audience
+        label: 适用人群
+        widget: select
+        multiple: true
+        required: false
+        default: []
+        options:
+          - { label: 新手, value: beginner }
+          - { label: 博主, value: blogger }
+          - { label: 企业, value: business }
+          - { label: 电商, value: ecommerce }
+          - { label: 开发者, value: developer }
+          - { label: 代理商, value: agency }
+          - { label: 高流量, value: high-traffic }
+
+      # ── 配置 ──
+      - { name: websites, label: 可托管网站数, widget: string, default: '1', hint: '不限则填「不限」' }
+      - { name: storage, label: 存储空间, widget: string }
+      - { name: bandwidth, label: 流量额度, widget: string }
+
+      - name: specs
+        label: 核心配置明细
+        widget: list
+        summary: '{{fields.label}}：{{fields.value}}'
+        fields:
+          - { name: label, label: 配置项, widget: string }
+          - { name: value, label: 值, widget: string }
+          - { name: note, label: 补充说明, widget: string, required: false }
+
+      - name: features
+        label: 权益清单
+        widget: list
+        summary: '{{fields.label}}'
+        fields:
+          - { name: label, label: 权益名称, widget: string }
+          - { name: included, label: 是否包含, widget: boolean, default: true }
+          - { name: note, label: 补充说明, widget: string, required: false }
+
+      # ── 营销 ──
+      - { name: discountBadge, label: 折扣标签文案, widget: string, required: false, hint: '例如「省 75%」，不填则由价格自动计算' }
+      - { name: freebies, label: 赠品亮点, widget: list, default: [], hint: '展示在套餐卡片的醒目位置，建议 2 到 3 条' }
+      - { name: moneyBackDays, label: 退款保障天数, widget: number, value_type: int, default: 30 }
+
+      # ── 联盟 ──
+      - name: affiliate
+        label: 联盟推广设置
+        widget: object
+        required: false
+        fields:
+          - { name: landingPath, label: 落地页路径覆盖, widget: string, required: false, hint: '例如 /web-hosting，不填则按大类自动推断' }
+          - { name: couponCode, label: 专属优惠码覆盖, widget: string, required: false, hint: '不填则使用全局优惠码' }
+          - { name: campaign, label: 活动标识, widget: string, required: false, hint: '写入 utm_content，用于联盟后台区分流量来源' }
+
+      # ── 内容 ──
+      - { name: verdict, label: 专家结论, widget: text, hint: '3 到 4 句，说清这个套餐的真实定位与取舍' }
+      - { name: bestFor, label: 最适合谁, widget: string }
+      - { name: caveat, label: 需要注意的短板, widget: text, required: false, hint: '诚实披露缺点，反而能提升转化' }
+      - { name: relatedReviews, label: 相关评测文章, widget: list, required: false, default: [] }
+
+      - { name: active, label: 在售（下架则关闭）, widget: boolean, default: true }
+      - { name: lastChecked, label: 价格核验日期, widget: date, date_format: 'YYYY-MM-DD' }
+
+  # ──────────────────────────────────────────────
+  #  优惠码
+  # ──────────────────────────────────────────────
+  - name: coupons
+    label: 优惠码
+    label_singular: 优惠
+    description: 全站展示的优惠码与折扣权益
+    files:
+      - name: coupons
+        label: 优惠码列表
+        file: src/content/coupons.yaml
+        fields:
+          - name: coupons
+            label: 优惠条目
+            widget: list
+            summary: '{{fields.code}} — {{fields.title}}'
+            fields:
+              - { name: code, label: 优惠码, widget: string, hint: '无码优惠填 AUTO' }
+              - { name: title, label: 标题, widget: string }
+              - { name: description, label: 说明, widget: text }
+              - { name: discount, label: 折扣力度, widget: string, hint: '例如「额外 7%」或「省 75%」' }
+              - name: appliesTo
+                label: 适用产品大类
+                widget: select
+                multiple: true
+                default: []
+                options:
+                  - { label: 共享主机, value: shared }
+                  - { label: VPS, value: vps }
+                  - { label: Cloud Hosting, value: cloud }
+                  - { label: Website Builder, value: builder }
+              - { name: autoApplied, label: 自动生效（无需输入码）, widget: boolean, default: false }
+              - { name: expiresAt, label: 有效期截止, widget: date, date_format: 'YYYY-MM-DD', required: false }
+              - { name: featured, label: 置顶推荐, widget: boolean, default: false }
+              - { name: steps, label: 使用步骤, widget: list, default: [] }
+              - { name: verified, label: 已验证有效, widget: boolean, default: true, hint: '每次核验后更新这个开关' }
+              - { name: lastChecked, label: 核验日期, widget: date, date_format: 'YYYY-MM-DD' }
+
+  # ──────────────────────────────────────────────
+  #  竞品对比
+  # ──────────────────────────────────────────────
+  - name: competitors
+    label: 竞品对比
+    label_singular: 竞品
+    description: 用于 Hostinger 与同类主机的横向对比内容
+    files:
+      - name: competitors
+        label: 竞品列表
+        file: src/content/competitors.yaml
+        fields:
+          - name: competitors
+            label: 竞品条目
+            widget: list
+            summary: '{{fields.name}} — ¥{{fields.startingPrice}}/月'
+            fields:
+              - { name: id, label: 标识, widget: string, hint: '小写英文，用于内部引用' }
+              - { name: name, label: 名称, widget: string }
+              - { name: startingPrice, label: 起价（月均） , widget: number, value_type: float }
+              - { name: rating, label: 编辑评分, widget: number, value_type: float, min: 0, max: 5, step: 0.1 }
+              - { name: pros, label: 优点, widget: list, default: [] }
+              - { name: cons, label: 缺点, widget: list, default: [] }
+              - { name: verdict, label: 对比结论, widget: text }
+              - { name: betterFor, label: 更适合谁, widget: string, required: false }
+
+  # ──────────────────────────────────────────────
+  #  作者
+  # ──────────────────────────────────────────────
+  - name: authors
+    label: 作者团队
+    label_singular: 作者
+    description: 文章署名信息与资历说明
+    files:
+      - name: authors
+        label: 作者列表
+        file: src/content/authors.yaml
+        fields:
+          - name: authors
+            label: 作者条目
+            widget: list
+            summary: '{{fields.name}} — {{fields.role}}'
+            fields:
+              - { name: id, label: 标识, widget: string, hint: '小写英文，与文章的 author 字段对应' }
+              - { name: name, label: 姓名, widget: string }
+              - { name: role, label: 职位, widget: string }
+              - { name: bio, label: 简介, widget: text, hint: '突出专业背景，这是 E-E-A-T 信号' }
+              - { name: initials, label: 头像缩写, widget: string, hint: '2 个大写字母' }
+              - { name: expertise, label: 专长领域, widget: list, default: [] }
+              - { name: url, label: 署名页链接, widget: string, required: false }

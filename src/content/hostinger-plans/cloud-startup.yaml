@@ -1,0 +1,74 @@
+name: Cloud Startup
+fullName: Hostinger Cloud Startup
+category: cloud
+series: Cloud
+order: 10
+tagline: 资源隔离 + 自动扩容，流量站的第一站
+pricing:
+  promoPrice: 65
+  regularPrice: 220
+  renewalPrice: 220
+  termLabel: 48 个月
+  currency: ¥
+  upfrontTotal: 3120
+rating: 4.6
+reviewCount: 1120
+bestValue: false
+recommended: true
+audience:
+  - business
+  - ecommerce
+  - agency
+websites: '100'
+storage: 200 GB NVMe SSD
+bandwidth: 不限量
+specs:
+  - label: CPU 核心
+    value: 2 核（专属）
+  - label: 内存
+    value: 3 GB（专属）
+  - label: 存储
+    value: 200 GB NVMe
+  - label: 带宽
+    value: 不限量
+  - label: 资源隔离
+    value: 4 倍于共享主机
+  - label: IP 地址
+    value: 专属 IP
+  - label: 可托管网站
+    value: 100 个
+features:
+  - label: 专属资源不共享
+    included: true
+  - label: 自动流量扩容
+    included: true
+    note: 峰值自动扩展，用后回缩
+  - label: 免费 SSL 证书
+    included: true
+  - label: 免费域名（1 年）
+    included: true
+  - label: 每日自动备份
+    included: true
+  - label: 免费网站迁移
+    included: true
+  - label: 内置 Cloudflare CDN
+    included: true
+  - label: 优先支持通道
+    included: true
+discountBadge: 省 70%
+freebies:
+  - 赠送 1 年 .com 域名
+  - 专属 IP 地址
+  - 每日备份 + CDN
+  - 免费网站迁移
+moneyBackDays: 30
+affiliate:
+  campaign: cloud-startup
+verdict: Cloud 与共享主机最本质的区别不是配置数字，而是「资源隔离」这四个字 —— 隔壁邻居被流量打爆时，你的站不会跟着卡。Startup 这一档给到 4 倍隔离和自动扩容，是广告投放站点的最低门槛。
+bestFor: 正在跑 Google/Meta 广告、随时可能被流量冲击的电商与落地页站
+caveat: 2 核 3GB 的绝对配置并不高，如果你的业务是计算密集型（如图片批量处理），同价位 VPS KVM 4 的 4 核 16GB 更实在。
+relatedReviews:
+  - hostinger-vps-vs-cloud
+  - hostinger-review-2026
+active: true
+lastChecked: 2026-09-10

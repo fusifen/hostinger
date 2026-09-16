@@ -1,0 +1,71 @@
+name: Single
+fullName: Hostinger Single 共享主机
+category: shared
+series: Shared
+order: 10
+tagline: 最便宜的入门选择，适合第一个网站
+pricing:
+  promoPrice: 15
+  regularPrice: 62
+  renewalPrice: 62
+  termLabel: 48 个月
+  currency: ¥
+  upfrontTotal: 720
+rating: 4.3
+reviewCount: 1840
+bestValue: false
+recommended: false
+audience:
+  - beginner
+  - blogger
+websites: '1'
+storage: 50 GB NVMe SSD
+bandwidth: 100 GB / 月
+specs:
+  - label: CPU 核心
+    value: 1 核
+  - label: 内存
+    value: 1 GB
+  - label: 存储
+    value: 50 GB NVMe
+  - label: 带宽
+    value: 100 GB / 月
+  - label: MySQL 数据库
+    value: 2 个
+  - label: 邮箱账户
+    value: 1 个（免费 1 年）
+  - label: 可托管网站
+    value: 1 个
+features:
+  - label: 免费 SSL 证书
+    included: true
+  - label: 免费域名（1 年）
+    included: false
+    note: 需 Premium 及以上
+  - label: 每周自动备份
+    included: true
+  - label: 24/7 在线客服
+    included: true
+  - label: 内置 AI 建站工具
+    included: true
+  - label: 免费网站迁移
+    included: false
+  - label: 优先支持通道
+    included: false
+  - label: CDN 加速
+    included: false
+discountBadge: 省 75%
+freebies:
+  - 免费 1 年商务邮箱
+  - 免费 SSL
+moneyBackDays: 30
+affiliate:
+  campaign: shared-single
+verdict: 价格是全站最低的一档，但 1 个网站 + 100GB 流量的额度只够跑一个轻量站。如果你的目标是先花最少的钱把第一个站跑起来验证想法，Single 完全够用。
+bestFor: 只有一个网站、日均访问量低于 500 的纯新手与个人博客
+caveat: 不支持免费域名，也没有免费迁移服务；网站长起来后必须升级，否则流量峰值会被限流。
+relatedReviews:
+  - hostinger-shared-hosting-review
+  - hostinger-review-2026
+active: true
+lastChecked: 2026-09-10

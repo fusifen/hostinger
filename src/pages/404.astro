@@ -1,0 +1,96 @@
+---
+/**
+ * 404 页面
+ * 静态站由托管商（Cloudflare Pages / Netlify 等）自动识别 404.html。
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Icon from '../components/Icon.astro';
+import PlanCard from '../components/PlanCard.astro';
+import { getCollection } from 'astro:content';
+import { SITE, PRODUCT_CATEGORIES } from '../consts';
+
+const allPlans = await getCollection('hostingerPlans', ({ data }) => data.active);
+const bestPick = allPlans
+  .filter((p) => p.data.bestValue)
+  .sort((a, b) => a.data.pricing.promoPrice - b.data.pricing.promoPrice)[0];
+
+const shortcuts = [
+  ...PRODUCT_CATEGORIES.map((c) => ({ label: c.label, href: `/pricing#${c.slug}`, icon: c.icon })),
+  { label: '全部评测', href: '/reviews', icon: 'award' },
+  { label: '建站教程', href: '/tutorials', icon: 'book' },
+  { label: '优惠码专区', href: '/coupons', icon: 'tag' },
+  { label: '套餐选择器', href: '/tools/plan-finder', icon: 'target' },
+];
+---
+
+<BaseLayout
+  title={`页面不存在 · ${SITE.name}`}
+  description="你访问的页面已被移动或删除。这里有一些常用入口，或许能帮你更快找到需要的内容。"
+  noindex
+>
+  <div class="container-page">
+    <div class="grid gap-14 py-20 lg:grid-cols-[1.15fr_0.85fr] lg:gap-20 lg:py-28">
+      <!-- 左侧：说明 -->
+      <div>
+        <p class="font-mono text-sm font-semibold tracking-widest text-brand-600">ERROR 404</p>
+        <h1 class="text-h1 mt-5 font-extrabold tracking-tight text-[var(--text-strong)]">
+          这个页面找不到了
+        </h1>
+        <p class="mt-5 max-w-xl text-lg leading-relaxed text-[var(--text-body)]">
+          链接可能已失效，或者地址里有个错别字。别担心 —— 下面这些入口覆盖了站内
+          <span class="font-semibold text-[var(--text-strong)]">95% 的访问意图</span>。
+        </p>
+
+        <!-- 快捷入口 -->
+        <div class="mt-10">
+          <p class="eyebrow mb-4">常用入口</p>
+          <div class="grid gap-3 sm:grid-cols-2">
+            {shortcuts.map((s) => (
+              <a
+                href={s.href}
+                class="group flex items-center gap-3 rounded-xl border border-[var(--hairline)] bg-white px-4 py-3.5 transition-all hover:-translate-y-0.5 hover:border-brand-300 hover:shadow-[var(--shadow-card)]"
+              >
+                <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand-50 text-brand-600 transition-colors group-hover:bg-brand-600 group-hover:text-white">
+                  <Icon name={s.icon} size={17} />
+                </span>
+                <span class="text-sm font-semibold text-[var(--text-strong)]">{s.label}</span>
+                <Icon
+                  name="arrowRight"
+                  size={14}
+                  class="ml-auto text-[var(--text-faint)] transition-transform group-hover:translate-x-0.5 group-hover:text-brand-600"
+                />
+              </a>
+            ))}
+          </div>
+        </div>
+
+        <!-- 站内搜索提示 -->
+        <div class="mt-10 rounded-2xl border border-[var(--hairline)] bg-[var(--surface-muted,#f7f7fc)] p-6">
+          <div class="flex items-start gap-4">
+            <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-brand-600 shadow-sm">
+              <Icon name="search" size={18} />
+            </span>
+            <div>
+              <p class="font-semibold text-[var(--text-strong)]">想找某篇具体内容？</p>
+              <p class="mt-1.5 text-sm leading-relaxed text-[var(--text-body)]">
+                去
+                <a href="/blog" class="font-semibold text-brand-600 underline decoration-brand-200 underline-offset-2 hover:decoration-brand-600">全部文章</a>
+                页面，那里支持按分类、标签和关键词实时筛选。
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 右侧：推荐套餐，把流失流量接住 -->
+      <div class="lg:pt-8">
+        {bestPick && (
+          <div>
+            <p class="eyebrow mb-4">最多人选择的套餐</p>
+            <PlanCard plan={bestPick} />
+          </div>
+        )}
+      </div>
+    </div>
+  </div>
+</BaseLayout>

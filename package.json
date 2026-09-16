@@ -1,18 +1,29 @@
 {
-  "name": "mechanical-meteor",
+  "name": "hostingerpick",
   "type": "module",
-  "version": "0.0.1",
+  "version": "1.0.0",
+  "description": "Hostinger 主机推广与内容聚合站 — Astro + Tailwind + Sveltia CMS",
   "engines": {
     "node": ">=22.12.0"
   },
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build",
+    "start": "astro dev",
+    "build": "node scripts/check-content.mjs && astro build",
+    "build:force": "astro build",
     "preview": "astro preview",
-    "astro": "astro"
+    "check": "astro check",
+    "check:content": "node scripts/check-content.mjs",
+    "check:cms": "node scripts/verify-cms-config.mjs",
+    "astro": "astro",
+    "gen:outline": "node scripts/generate-content-outline.mjs"
   },
   "dependencies": {
-    "astro": "^7.3.2"
+    "@astrojs/rss": "^4.0.19",
+    "@astrojs/sitemap": "^3.6.0",
+    "@tailwindcss/vite": "^4.3.3",
+    "astro": "^7.3.2",
+    "tailwindcss": "^4.3.3"
   },
   "allowScripts": {
     "esbuild": true

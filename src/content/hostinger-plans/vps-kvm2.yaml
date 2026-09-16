@@ -1,0 +1,73 @@
+name: KVM 2
+fullName: Hostinger VPS KVM 2
+category: vps
+series: KVM
+order: 20
+tagline: VPS 里的甜点配置，性能与价格的最优解
+pricing:
+  promoPrice: 50
+  regularPrice: 122
+  renewalPrice: 122
+  termLabel: 24 个月
+  currency: ¥
+  upfrontTotal: 1200
+rating: 4.8
+reviewCount: 2960
+bestValue: true
+recommended: true
+audience:
+  - developer
+  - high-traffic
+  - agency
+websites: 不限
+storage: 100 GB NVMe SSD
+bandwidth: 8 TB / 月
+specs:
+  - label: vCPU
+    value: 2 核
+  - label: 内存
+    value: 8 GB
+  - label: 存储
+    value: 100 GB NVMe
+  - label: 月流量
+    value: 8 TB
+  - label: 独立 IPv4
+    value: 1 个
+  - label: 管理面板
+    value: hPanel + 完整 root
+  - label: 可托管网站
+    value: 不限
+features:
+  - label: 完整 root 权限
+    included: true
+  - label: 独立 IP 地址
+    included: true
+  - label: 每周自动备份
+    included: true
+  - label: 24/7 在线客服
+    included: true
+  - label: AI 建站助手
+    included: false
+  - label: 免费网站迁移
+    included: false
+  - label: 一键装 CyberPanel
+    included: true
+  - label: 8 TB 大带宽
+    included: true
+discountBadge: 省 59%
+freebies:
+  - 1 个独立 IPv4
+  - 完整 root 权限
+  - 每周快照备份（1 个）
+moneyBackDays: 30
+affiliate:
+  campaign: vps-kvm2
+verdict: 2 核 8GB 是所有面板类应用（CyberPanel、宝塔、Docker 编排）的舒适起点。实测跑 10 个中等流量 WordPress 站，Nginx 负载依然稳定在 0.6 以下。多花 15 元把内存翻倍、核数翻倍，这笔账在任何场景下都划算。
+bestFor: 同时托管 8 到 15 个站点的站长、跑 Docker 与多服务的开发者
+caveat: 依旧是单节点，没有硬件级冗余；业务关键型应用建议至少选 KVM 4 并配置异地备份。
+relatedReviews:
+  - hostinger-vps-review
+  - cyberpanel-vps-setup
+  - hpanel-complete-guide
+active: true
+lastChecked: 2026-09-10

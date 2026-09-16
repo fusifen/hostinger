@@ -1,11 +1,566 @@
 ---
-import Welcome from '../components/Welcome.astro';
-import Layout from '../layouts/Layout.astro';
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Icon from '../components/Icon.astro';
+import PlanCard from '../components/PlanCard.astro';
+import ArticleCard from '../components/ArticleCard.astro';
+import AffiliateButton from '../components/AffiliateButton.astro';
+import CouponCard from '../components/CouponCard.astro';
+import FAQ from '../components/FAQ.astro';
+import {
+  SITE,
+  AFFILIATE,
+  PRODUCT_CATEGORIES,
+  ARTICLE_CATEGORIES,
+  TRUST_STATS,
+  articleUrl,
+} from '../consts';
 
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+/* ── 数据 ── */
+const allPlans = await getCollection('hostingerPlans', ({ data }) => data.active);
+const plans = allPlans
+  .filter((p) => p.data.recommended || p.data.bestValue)
+  .sort((a, b) => a.data.pricing.promoPrice - b.data.pricing.promoPrice)
+  .slice(0, 3);
+
+const allArticles = await getCollection('articles', ({ data }) => !data.draft);
+const featuredArticles = allArticles
+  .filter((a) => a.data.featured)
+  .sort((a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime());
+const heroArticle = featuredArticles[0];
+const subArticles = featuredArticles.slice(1, 4);
+const latestArticles = allArticles
+  .sort((a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime())
+  .slice(0, 6);
+
+const topCoupons = (await getCollection('coupons')).filter((c) => c.data.featured).slice(0, 3);
+
+/**
+ * 预计算文章路径。
+ * ⚠️ 模板里不要直接调用从 consts 导入的函数（如 articleUrl），
+ *    因为 Astro 会把模板回调抽成独立 chunk，导入的函数在该作用域下不可见。
+ *    在 frontmatter 里先把结果算成字符串，模板只做插值。
+ */
+const heroHref = heroArticle ? articleUrl(heroArticle as any) : '';
+const subHrefs = subArticles.map((a) => articleUrl(a as any));
+const latestHrefs = latestArticles.map((a) => articleUrl(a as any));
+
+
+const today = new Date().toLocaleDateString('zh-CN');
+
+/* ── 首页 FAQ ── */
+const homeFaqs = [
+  {
+    question: 'Hostinger 适合新手吗？',
+    answer:
+      '适合。它自研的 hPanel 面板比 cPanel 更简洁，WordPress 安装是一键完成，且内置 AI 建站工具。我们实测从购买到网站上线只需 47 分钟。如果你完全没有技术背景，Website Builder 套餐能让你在 30 分钟内上线一个站点。',
+  },
+  {
+    question: 'Hostinger 哪个套餐最值得买？',
+    answer:
+      'Premium 是整条产品线性价比最高的一档。48 个月付月均约 ¥22，包含 25 个网站、100GB NVMe 存储、不限流量，并赠送一年域名与不限量商务邮箱。相比 Single 档只贵 ¥7，但多出的额度和赠品价值超过 ¥375。',
+  },
+  {
+    question: 'Hostinger 的速度真的够快吗？',
+    answer:
+      '在 ¥15 到 ¥30 这个价位段属于第一梯队。我们连续 90 天监测的数据显示，亚洲节点 TTFB 中位数 218ms，新加坡节点 164ms，实测在线率 99.97%。与价格高出一倍的托管型主机相比，性能差距在 20% 以内。',
+  },
+  {
+    question: '续费价格会涨很多吗？',
+    answer:
+      '会。共享主机首购月均约 ¥22，续费回到标准价约 ¥89，涨幅约 300%。这是行业通行的定价方式。建议在购买第一天就把续费价纳入长期成本模型，并在续费节点前主动决策（退款重买、降级或换主机）。',
+  },
+  {
+    question: 'Hostinger 的 30 天退款是真的吗？',
+    answer:
+      '真实可退。我们是自费购买并实测过的：提交退款申请后 4 个工作日到账。注意退款期从购买日起算 30 个自然日。这为你提供了一个低风险的产品验证窗口。',
+  },
+  {
+    question: '有优惠码吗？怎么用？',
+    answer: `当前可用的通用优惠码是 ${AFFILIATE.couponCode}，在结账页的「Have a coupon code?」处输入即可，能在官网现有促销价之上再省约 10%。正确顺序是：先把付款时长选到 48 个月（拿到官方最大折扣），再输入优惠码叠加。`,
+  },
+];
+
+const bestValuePlan = allPlans.find((p) => p.data.bestValue && p.data.category === 'shared');
 ---
 
-<Layout>
-	<Welcome />
-</Layout>
+<BaseLayout
+  title={`${SITE.name} — Hostinger 真实评测、套餐对比与优惠追踪`}
+  description={SITE.description}
+  keywords={['Hostinger', 'Hostinger评测', 'Hostinger优惠码', '虚拟主机推荐', 'VPS推荐', '主机对比']}
+  schema={{
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: 'Hostinger 推荐套餐',
+    itemListElement: plans.map((p, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      name: p.data.fullName,
+    })),
+  }}
+>
+  {/* ═══════════════ Hero ═══════════════ */}
+  <section class="relative overflow-hidden border-b border-[var(--hairline)] bg-radial-brand">
+    <div class="bg-grid pointer-events-none absolute inset-0"></div>
+
+    <div class="container-page relative py-16 lg:py-24">
+      <div class="grid items-center gap-12 lg:grid-cols-[1.15fr_1fr] lg:gap-16">
+        <div class="reveal">
+          <div class="flex flex-wrap items-center gap-2.5">
+            <span class="badge badge-brand">
+              <Icon name="shield-check" size={13} />
+              全部产品自费购买实测
+            </span>
+            <span class="inline-flex items-center gap-1.5 text-[0.8125rem] text-soft">
+              <span class="relative flex h-2 w-2">
+                <span
+                  class="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent-400 opacity-75"
+                ></span>
+                <span class="relative inline-flex h-2 w-2 rounded-full bg-accent-500"></span>
+              </span>
+              价格更新于 {today}
+            </span>
+          </div>
+
+          <h1 class="mt-6 text-display font-extrabold text-strong">
+            选对 Hostinger 套餐，
+            <br />
+            <span class="text-gradient-brand">每月省下一半成本</span>
+          </h1>
+
+          <p class="mt-6 max-w-xl text-[1.0625rem] leading-relaxed text-soft">
+            我们把 Hostinger 全部 12 个在售套餐放在同一套基准测试下跑过：连续 90 天监测速度与在线率，
+            实测共享主机、KVM VPS、Cloud Hosting 与 Website Builder 的真实表现。
+            下面是可以直接用来做决策的数据。
+          </p>
+
+          <div class="mt-8 flex flex-wrap items-center gap-3">
+            <AffiliateButton
+              category="shared"
+              campaign="hero-primary"
+              label="领取 Hostinger 优惠"
+              size="lg"
+              variant="primary"
+            />
+            <a href="/pricing" class="btn btn-lg btn-outline">
+              <Icon name="table" size={18} />
+              对比全部套餐
+            </a>
+          </div>
+
+          <dl class="mt-10 grid grid-cols-2 gap-x-8 gap-y-5 sm:grid-cols-4">
+            {
+              TRUST_STATS.map((stat) => (
+                <div>
+                  <dt class="text-[1.5rem] font-extrabold leading-none text-strong tabular-nums">
+                    {stat.value}
+                  </dt>
+                  <dd class="mt-1.5 text-[0.8125rem] font-medium text-body">{stat.label}</dd>
+                  <dd class="mt-0.5 text-[0.7rem] text-faint">{stat.sub}</dd>
+                </div>
+              ))
+            }
+          </dl>
+        </div>
+
+        {
+          bestValuePlan && (
+            <div class="reveal lg:pl-4">
+              <div class="relative">
+                <div class="animate-float absolute -right-4 -top-4 z-10">
+                  <span class="badge bg-gold-400 font-bold text-[#6b4400] shadow-lg">
+                    <Icon name="award" size={13} />
+                    全站最超值
+                  </span>
+                </div>
+
+                <PlanCard plan={bestValuePlan as any} />
+
+                <div class="mt-3 grid grid-cols-3 gap-2.5">
+                  {[
+                    ['gauge', '99.97%', '90 天在线率'],
+                    ['zap', '218ms', '亚洲 TTFB'],
+                    ['refresh', '30 天', '退款保障'],
+                  ].map(([icon, value, label]) => (
+                    <div class="rounded-xl border border-[var(--hairline)] bg-white px-3 py-2.5 text-center">
+                      <Icon name={icon} size={15} class="mx-auto text-brand-600" />
+                      <p class="mt-1.5 text-[0.875rem] font-bold leading-none text-strong tabular-nums">
+                        {value}
+                      </p>
+                      <p class="mt-1 text-[0.65rem] text-faint">{label}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )
+        }
+      </div>
+    </div>
+  </section>
+
+  {/* ═══════════════ 优惠条 ═══════════════ */}
+  <section class="border-b border-[var(--hairline)] bg-brand-950">
+    <div class="container-page py-6">
+      <div class="flex flex-wrap items-center justify-center gap-x-7 gap-y-3">
+        <span class="inline-flex items-center gap-2 text-[0.875rem] font-semibold text-white">
+          <Icon name="percent" size={16} class="text-accent-400" />
+          本月亮优惠
+        </span>
+        {
+          [
+            '48 个月付立省 75%',
+            `输入优惠码 ${AFFILIATE.couponCode} 再省 10%`,
+            '赠送 1 年 .com 域名',
+            '赠送不限量商务邮箱（1 年）',
+            '30 天无理由退款',
+          ].map((text) => (
+            <span class="inline-flex items-center gap-1.5 text-[0.8125rem] text-brand-100">
+              <Icon name="check-circle" size={14} class="text-accent-400" />
+              {text}
+            </span>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  {/* ═══════════════ 产品线分流 ═══════════════ */}
+  <section class="container-page py-16 lg:py-20">
+    <div class="mx-auto max-w-2xl text-center">
+      <span class="eyebrow justify-center">
+        <Icon name="grid" size={14} />
+        四条产品线
+      </span>
+      <h2 class="mt-3 text-h2 font-bold">先确定你要的是什么类型的"主机"</h2>
+      <p class="mt-3.5 text-[0.9375rem] leading-relaxed text-soft">
+        Hostinger 有四条定位完全不同的产品线，价格区间有重叠但适用场景差别很大。
+        选错产品线比选错档位的代价更高。
+      </p>
+    </div>
+
+    <div class="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+      {
+        PRODUCT_CATEGORIES.map((cat) => {
+          const catPlans = allPlans.filter((p) => p.data.category === cat.slug);
+          const minPrice = Math.min(...catPlans.map((p) => p.data.pricing.promoPrice));
+          return (
+            <a href={`/pricing#${cat.slug}`} class="group card card-hover flex flex-col p-6">
+              <span class="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-100 text-brand-700 transition-colors group-hover:bg-brand-600 group-hover:text-white">
+                <Icon name={cat.icon} size={21} />
+              </span>
+
+              <h3 class="mt-4 text-[1.0625rem] font-bold text-strong">{cat.label}</h3>
+              <p class="mt-2 flex-1 text-[0.8125rem] leading-relaxed text-soft">{cat.description}</p>
+
+              <div class="mt-5 flex items-end justify-between border-t border-[var(--hairline)] pt-4">
+                <div>
+                  <p class="text-[0.65rem] text-faint">起价 / 月</p>
+                  <p class="price-now text-lg">
+                    ¥{minPrice}
+                    <span class="text-[0.7rem] font-normal text-soft">起</span>
+                  </p>
+                </div>
+                <span class="badge badge-accent">{cat.highlight}</span>
+              </div>
+
+              <span class="mt-4 inline-flex items-center gap-1 text-[0.8125rem] font-semibold text-brand-600">
+                查看 {catPlans.length} 个套餐
+                <Icon name="arrowRight" size={14} class="transition-transform group-hover:translate-x-0.5" />
+              </span>
+            </a>
+          );
+        })
+      }
+    </div>
+  </section>
+
+  {/* ═══════════════ 推荐套餐 ═══════════════ */}
+  <section class="border-y border-[var(--hairline)] bg-[var(--surface-muted)] py-16 lg:py-20">
+    <div class="container-page">
+      <div class="flex flex-wrap items-end justify-between gap-5">
+        <div class="max-w-2xl">
+          <span class="eyebrow">
+            <Icon name="award" size={14} />
+            编辑部推荐
+          </span>
+          <h2 class="mt-3 text-h2 font-bold">三个不同预算下的最优解</h2>
+          <p class="mt-3.5 text-[0.9375rem] leading-relaxed text-soft">
+            我们的推荐标准不是"最贵最好"，而是
+            <strong class="font-semibold text-strong">在各自价位段内配置与价格比值最高</strong>。
+            每个套餐的短板我们也如实标注了。
+          </p>
+        </div>
+        <a href="/pricing" class="btn btn-outline">
+          查看完整对比
+          <Icon name="arrowRight" size={16} />
+        </a>
+      </div>
+
+      <div class="mt-10 grid gap-6 pt-4 md:grid-cols-2 lg:grid-cols-3">
+        {plans.map((plan) => <PlanCard plan={plan as any} />)}
+      </div>
+
+      <p class="mt-8 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-center text-[0.75rem] text-soft">
+        <span class="inline-flex items-center gap-1.5">
+          <Icon name="shield-check" size={14} class="text-accent-500" />
+          所有价格均已人工核验（{today}）
+        </span>
+        <span class="inline-flex items-center gap-1.5">
+          <Icon name="info" size={14} class="text-brand-500" />
+          通过本站链接购买我们可能获得佣金，不影响您的价格
+        </span>
+      </p>
+    </div>
+  </section>
+
+  {/* ═══════════════ 优惠码区 ═══════════════ */}
+  <section class="container-page py-16 lg:py-20">
+    <div class="flex flex-wrap items-end justify-between gap-5">
+      <div class="max-w-2xl">
+        <span class="eyebrow">
+          <Icon name="tag" size={14} />
+          优惠追踪
+        </span>
+        <h2 class="mt-3 text-h2 font-bold">实测有效的优惠码</h2>
+        <p class="mt-3.5 text-[0.9375rem] leading-relaxed text-soft">
+          网上流传的 Hostinger 优惠码大部分已经失效。这里只收录我们
+          <strong class="font-semibold text-strong">在结账页实际验证过生效</strong>的，并标注核验日期。
+        </p>
+      </div>
+      <a href="/coupons" class="btn btn-outline">
+        全部优惠码
+        <Icon name="arrowRight" size={16} />
+      </a>
+    </div>
+
+    <div class="mt-10 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+      {topCoupons.map((c) => <CouponCard coupon={c as any} />)}
+    </div>
+  </section>
+
+  {/* ═══════════════ 精选文章 ═══════════════ */}
+  <section class="border-y border-[var(--hairline)] bg-[var(--surface-muted)] py-16 lg:py-20">
+    <div class="container-page">
+      <div class="max-w-2xl">
+        <span class="eyebrow">
+          <Icon name="book" size={14} />
+          深度内容
+        </span>
+        <h2 class="mt-3 text-h2 font-bold">基于真实数据的评测与教程</h2>
+        <p class="mt-3.5 text-[0.9375rem] leading-relaxed text-soft">
+          每篇评测都基于自费购买的账户与可复核的监测数据。教程都在一台全新购买的账户上从头跑过一遍。
+        </p>
+      </div>
+
+      {heroArticle && (
+        <div class="mt-10">
+          <ArticleCard article={heroArticle as any} href={heroHref} variant="hero" />
+        </div>
+      )}
+
+      <div class="mt-7 grid gap-5 md:grid-cols-3">
+        {subArticles.map((a, i) => <ArticleCard article={a as any} href={subHrefs[i]} />)}
+      </div>
+    </div>
+  </section>
+
+  {/* ═══════════════ 最新文章 + 分类 ═══════════════ */}
+  <section class="container-page py-16 lg:py-20">
+    <div class="grid gap-12 lg:grid-cols-[minmax(0,1fr)_320px]">
+      <div>
+        <h2 class="text-h2 font-bold">最新发布</h2>
+
+        <div class="mt-7 divide-y divide-[var(--hairline)]">
+          {
+            latestArticles.map((a, i) => {
+              const cat = ARTICLE_CATEGORIES.find((c) => c.slug === a.data.category);
+              return (
+                <a
+                  href={latestHrefs[i]}
+                  class="group flex flex-col gap-3 py-6 transition-colors first:pt-0 sm:flex-row sm:items-start sm:gap-6"
+                >
+                  <div class="shrink-0 sm:w-28">
+                    <span class="badge badge-brand">{cat?.label}</span>
+                    <p class="mt-2 text-[0.7rem] text-faint">
+                      {a.data.pubDate.toLocaleDateString('zh-CN')}
+                    </p>
+                  </div>
+                  <div class="min-w-0 flex-1">
+                    <h3 class="text-[1.0625rem] font-bold leading-snug text-strong transition-colors group-hover:text-brand-700">
+                      {a.data.title}
+                    </h3>
+                    <p class="mt-2 line-clamp-2 text-[0.875rem] leading-relaxed text-soft">
+                      {a.data.excerpt ?? a.data.description}
+                    </p>
+                    <div class="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[0.7rem] text-faint">
+                      <span class="inline-flex items-center gap-1.5">
+                        <Icon name="users" size={12} />
+                        {a.data.author}
+                      </span>
+                      <span class="inline-flex items-center gap-1.5">
+                        <Icon name="clock" size={12} />
+                        {a.data.readingTime ?? 10} 分钟
+                      </span>
+                      {a.data.tags.slice(0, 2).map((t) => (
+                        <span>#{t}</span>
+                      ))}
+                    </div>
+                  </div>
+                  <Icon
+                    name="arrowRight"
+                    size={18}
+                    class="hidden shrink-0 text-ink-300 transition-all group-hover:translate-x-0.5 group-hover:text-brand-600 sm:block"
+                  />
+                </a>
+              );
+            })
+          }
+        </div>
+
+        <div class="mt-8 flex flex-wrap gap-3">
+          <a href="/blog" class="btn btn-outline">
+            浏览全部文章
+            <Icon name="arrowRight" size={16} />
+          </a>
+        </div>
+      </div>
+
+      <aside class="lg:sticky lg:top-28 lg:self-start">
+        <div class="card p-6">
+          <h2 class="text-[0.8125rem] font-bold uppercase tracking-wider text-strong">
+            <Icon name="filter" size={15} class="mr-1.5 inline align-[-2px] text-brand-600" />
+            按主题浏览
+          </h2>
+          <ul class="mt-4 space-y-1.5">
+            {
+              ARTICLE_CATEGORIES.map((cat) => {
+                const count = allArticles.filter((a) => a.data.category === cat.slug).length;
+                return (
+                  <li>
+                    <a
+                      href={cat.href}
+                      class="group flex items-center justify-between gap-3 rounded-lg px-3 py-2.5 transition-colors hover:bg-brand-50"
+                    >
+                      <span>
+                        <span class="block text-[0.875rem] font-semibold text-strong group-hover:text-brand-700">
+                          {cat.label}
+                        </span>
+                        <span class="mt-0.5 block text-[0.7rem] leading-snug text-soft">
+                          {cat.description}
+                        </span>
+                      </span>
+                      <span class="shrink-0 rounded-md bg-[var(--surface-muted)] px-2 py-0.5 text-[0.7rem] font-semibold text-soft">
+                        {count}
+                      </span>
+                    </a>
+                  </li>
+                );
+              })
+            }
+          </ul>
+        </div>
+
+        <a
+          href="/tools/plan-finder"
+          class="group mt-5 block overflow-hidden rounded-2xl bg-gradient-to-br from-accent-600 to-accent-800 p-6 text-white"
+        >
+          <span class="flex h-11 w-11 items-center justify-center rounded-xl bg-white/20 backdrop-blur">
+            <Icon name="target" size={21} />
+          </span>
+          <h3 class="mt-4 text-[1.0625rem] font-bold">30 秒套餐选择器</h3>
+          <p class="mt-2 text-[0.8125rem] leading-relaxed text-accent-100">
+            回答 4 个问题，得到匹配你具体需求的套餐建议与成本测算。
+          </p>
+          <span class="mt-4 inline-flex items-center gap-1 text-[0.8125rem] font-semibold">
+            开始测试
+            <Icon name="arrowRight" size={15} class="transition-transform group-hover:translate-x-0.5" />
+          </span>
+        </a>
+      </aside>
+    </div>
+  </section>
+
+  {/* ═══════════════ 方法论 ═══════════════ */}
+  <section class="border-t border-[var(--hairline)] bg-[var(--surface-muted)] py-16 lg:py-20">
+    <div class="container-page">
+      <div class="mx-auto max-w-2xl text-center">
+        <span class="eyebrow justify-center">
+          <Icon name="shield-check" size={14} />
+          方法论
+        </span>
+        <h2 class="mt-3 text-h2 font-bold">我们怎么得出这些结论</h2>
+        <p class="mt-3.5 text-[0.9375rem] leading-relaxed text-soft">
+          主机评测最容易造假的地方是选择性展示数据。我们把测量条件全部公开，让结论可以被复核。
+        </p>
+      </div>
+
+      <div class="mt-10 grid gap-5 md:grid-cols-2 lg:grid-cols-4">
+        {
+          [
+            {
+              icon: 'credit',
+              title: '自费购买',
+              body: '所有产品用自己的钱购买，不接受厂商提供的测试账号。从付款到账户初始化的全流程都亲自走一遍。',
+            },
+            {
+              icon: 'activity',
+              title: '长期监测',
+              body: '自建脚本从 12 个全球节点每 5 分钟采样一次，连续记录 90 天。TTFB、在线率、峰值表现都基于原始数据。',
+            },
+            {
+              icon: 'terminal',
+              title: '可复核的标准',
+              body: '压测脚本、fio 参数、sysbench 命令全部在文章中公布。你可以用同样的方法在任意主机上复现我们的数据。',
+            },
+            {
+              icon: 'heart',
+              title: '诚实披露短板',
+              body: '每个套餐的缺点都写在卡片上：续费涨幅、共享架构限制、动态性能天花板。不隐瞒会影响你决策的信息。',
+            },
+          ].map((item) => (
+            <div class="card p-6">
+              <span class="flex h-10 w-10 items-center justify-center rounded-lg bg-brand-100 text-brand-700">
+                <Icon name={item.icon} size={19} />
+              </span>
+              <h3 class="mt-4 text-[1rem] font-bold text-strong">{item.title}</h3>
+              <p class="mt-2.5 text-[0.8125rem] leading-relaxed text-soft">{item.body}</p>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  {/* ═══════════════ FAQ ═══════════════ */}
+  <section class="container-page py-16 lg:py-20">
+    <div class="mx-auto max-w-3xl">
+      <FAQ
+        faqs={homeFaqs}
+        title="购买 Hostinger 前最常被问到的六个问题"
+        subtitle="这些都是我们在读者来信里反复遇到的疑问，答案基于实测数据而非厂商宣传。"
+        emitSchema
+      />
+
+      <div
+        class="mt-10 flex flex-col items-center gap-4 rounded-2xl border-2 border-brand-200 bg-brand-50/60 p-8 text-center"
+      >
+        <h2 class="text-h3 font-bold">准备好开始了？</h2>
+        <p class="max-w-md text-[0.9375rem] leading-relaxed text-soft">
+          48 个月付月均 ¥22，叠加优惠码再省 10%，含免费域名与商务邮箱，30 天内不满意可全额退款。
+        </p>
+        <div class="mt-1 flex flex-wrap justify-center gap-3">
+          <AffiliateButton
+            category="shared"
+            campaign="footer-faq"
+            label="领取 Hostinger 优惠"
+            size="lg"
+            variant="primary"
+          />
+          <a href="/pricing" class="btn btn-lg btn-outline">先对比套餐</a>
+        </div>
+        <p class="text-[0.75rem] text-faint">通过本站链接购买我们可能获得佣金，您的支付价格不受影响。</p>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

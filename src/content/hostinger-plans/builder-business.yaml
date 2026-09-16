@@ -1,0 +1,71 @@
+name: Website Builder Business
+fullName: Hostinger Website Builder Business
+category: builder
+series: Builder
+order: 20
+tagline: 解锁电商功能，Builder 里的完整形态
+pricing:
+  promoPrice: 40
+  regularPrice: 138
+  renewalPrice: 138
+  termLabel: 48 个月
+  currency: ¥
+  upfrontTotal: 1920
+rating: 4.4
+reviewCount: 1160
+bestValue: false
+recommended: false
+audience:
+  - business
+  - ecommerce
+websites: '1'
+storage: 200 GB NVMe SSD
+bandwidth: 不限量
+specs:
+  - label: AI 生成器
+    value: 内置（含产品页生成）
+  - label: 页面上限
+    value: 100 页
+  - label: 存储
+    value: 200 GB NVMe
+  - label: 带宽
+    value: 不限量
+  - label: 电商功能
+    value: 支持（含库存与订单）
+  - label: 支付集成
+    value: 内置主流网关
+  - label: 可托管网站
+    value: 1 个
+features:
+  - label: AI 一键生成整站
+    included: true
+  - label: 电商与订单管理
+    included: true
+  - label: 免费 SSL 证书
+    included: true
+  - label: 免费域名（1 年）
+    included: true
+  - label: 拖拽式可视化编辑
+    included: true
+  - label: 高级营销分析
+    included: true
+  - label: 每日自动备份
+    included: true
+  - label: 优先支持通道
+    included: true
+discountBadge: 省 71%
+freebies:
+  - 赠送 1 年 .com 域名
+  - 电商功能全解锁
+  - 每日备份 + 优先支持
+moneyBackDays: 30
+affiliate:
+  campaign: builder-business
+verdict: 加 15 元/月解锁电商能力，可以直接在 Builder 里上架商品、管理库存、收单。适合产品线简单（10 到 50 个 SKU）、不想折腾 WooCommerce 的小型卖家。
+bestFor: 小型电商卖家、想快速开一个卖货页面的个体商户
+caveat: 商品超过百件或需要复杂的变体、优惠券规则时，Builder 的电商模块会明显不够用 —— 那时请转向 WordPress + WooCommerce，而不是硬撑。
+relatedReviews:
+  - hostinger-website-builder-review
+  - woocommerce-on-hostinger-setup
+active: true
+lastChecked: 2026-09-10

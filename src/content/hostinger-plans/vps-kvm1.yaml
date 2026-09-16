@@ -1,0 +1,71 @@
+name: KVM 1
+fullName: Hostinger VPS KVM 1
+category: vps
+series: KVM
+order: 10
+tagline: 最便宜的独立资源主机，一台机器跑多个站
+pricing:
+  promoPrice: 35
+  regularPrice: 86
+  renewalPrice: 86
+  termLabel: 24 个月
+  currency: ¥
+  upfrontTotal: 840
+rating: 4.5
+reviewCount: 1240
+bestValue: false
+recommended: false
+audience:
+  - developer
+  - high-traffic
+websites: 不限
+storage: 50 GB NVMe SSD
+bandwidth: 4 TB / 月
+specs:
+  - label: vCPU
+    value: 1 核
+  - label: 内存
+    value: 4 GB
+  - label: 存储
+    value: 50 GB NVMe
+  - label: 月流量
+    value: 4 TB
+  - label: 独立 IPv4
+    value: 1 个
+  - label: 管理面板
+    value: hPanel + 完整 root
+  - label: 可托管网站
+    value: 不限
+features:
+  - label: 完整 root 权限
+    included: true
+  - label: 独立 IP 地址
+    included: true
+  - label: 每周自动备份
+    included: true
+  - label: 24/7 在线客服
+    included: true
+  - label: AI 建站助手
+    included: false
+  - label: 免费网站迁移
+    included: false
+  - label: 一键装 CyberPanel
+    included: true
+  - label: 4 TB 大带宽
+    included: true
+discountBadge: 省 59%
+freebies:
+  - 1 个独立 IPv4
+  - 完整 root 权限
+  - 每周快照备份（1 个）
+moneyBackDays: 30
+affiliate:
+  campaign: vps-kvm1
+verdict: 4GB 内存 + 1 核 vCPU 的入门配置，跑 3 到 5 个 WordPress 站或者一台自建服务绰绰有余。真正的价值不在价格，而在于你拿到了完整的 root 和一个独立 IP —— 这是共享主机永远给不了的东西。
+bestFor: 想摆脱共享主机限制的进阶站长、自建服务的开发者
+caveat: 只有 1 核 vCPU，单进程密集任务（如大图压缩、批量爬取）会明显吃力；1 核也意味着没有冗余，某项服务跑满会拖慢整机。
+relatedReviews:
+  - hostinger-vps-review
+  - cyberpanel-vps-setup
+active: true
+lastChecked: 2026-09-10

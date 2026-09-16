@@ -1,0 +1,556 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import Icon from '../../components/Icon.astro';
+import PlanCard from '../../components/PlanCard.astro';
+import AffiliateButton from '../../components/AffiliateButton.astro';
+import { AFFILIATE, affiliateUrl } from '../../consts';
+
+const allPlans = await getCollection('hostingerPlans', ({ data }) => data.active);
+
+/* 把套餐数据精简后传给客户端脚本做匹配 */
+const planData = allPlans.map((p) => ({
+  id: p.id,
+  name: p.data.name,
+  fullName: p.data.fullName,
+  category: p.data.category,
+  tagline: p.data.tagline,
+  promoPrice: p.data.pricing.promoPrice,
+  regularPrice: p.data.pricing.regularPrice,
+  renewalPrice: p.data.pricing.renewalPrice,
+  termLabel: p.data.pricing.termLabel,
+  upfrontTotal: p.data.pricing.upfrontTotal ?? 0,
+  rating: p.data.rating,
+  bestValue: p.data.bestValue,
+  verdict: p.data.verdict,
+  bestFor: p.data.bestFor,
+  caveat: p.data.caveat ?? '',
+  websites: p.data.websites,
+  storage: p.data.storage,
+  audience: p.data.audience,
+  campaign: p.data.affiliate.campaign ?? p.data.category,
+  /**
+   * 联盟链接必须在这里（frontmatter）预先算好。
+   * 客户端脚本是独立 chunk，拿不到导入的 affiliateUrl 函数 —— 只做字符串拼接。
+   */
+  affiliateUrl: affiliateUrl(p.data.category, `finder-${p.data.affiliate.campaign ?? p.data.category}`),
+  affiliatePercent: AFFILIATE.couponPercent,
+  couponCode: AFFILIATE.couponCode,
+}));
+
+/**
+ * 供内联脚本使用的基础联盟链接。
+ * ⚠️ 客户端脚本是独立 chunk，拿不到 frontmatter 里的变量 ——
+ *    必须通过 define:vars 注入，不能直接引用上面的 const。
+ */
+const finderBaseUrl = affiliateUrl();
+---
+
+<BaseLayout
+  title="Hostinger 套餐选择器 — 30 秒找到适合你的方案"
+  description="回答 4 个问题，得到匹配你具体需求的 Hostinger 套餐建议，同时给出首年成本、续费成本与成本优化建议。"
+  keywords={['Hostinger套餐选择', 'Hostinger怎么选', '主机选型工具']}
+  noindex={false}
+>
+  <div class="border-b border-[var(--hairline)] bg-[var(--surface-muted)]">
+    <div class="container-page py-4">
+      <Breadcrumbs items={[{ label: '套餐选择器' }]} />
+    </div>
+  </div>
+
+  <section class="relative overflow-hidden border-b border-[var(--hairline)]">
+    <div class="bg-radial-brand pointer-events-none absolute inset-0"></div>
+    <div class="container-page relative py-12 lg:py-14">
+      <div class="max-w-3xl">
+        <span class="eyebrow">
+          <Icon name="target" size={14} />
+          无需注册 · 4 个问题
+        </span>
+        <h1 class="mt-3.5 text-h1 font-extrabold">30 秒套餐选择器</h1>
+        <p class="mt-5 text-[1.0625rem] leading-relaxed text-soft">
+          犹豫的根源通常是需求没被理清。回答 4 个问题，我们会给出匹配的套餐、
+          首年与续费的真实成本，以及这个选择可能的问题。
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="container-page py-12 lg:py-14">
+    <div class="grid gap-10 lg:grid-cols-[minmax(0,1fr)_380px] xl:gap-14">
+      {/* ══════ 问卷 ══════ */}
+      <div>
+        <form id="finder-form" class="space-y-9">
+          {/* Q1 网站数量 */}
+          <fieldset class="rounded-2xl border border-[var(--hairline)] bg-white p-6">
+            <legend class="px-1">
+              <span class="flex items-center gap-2.5">
+                <span
+                  class="flex h-7 w-7 items-center justify-center rounded-full bg-brand-600 text-[0.75rem] font-bold text-white"
+                  >1</span
+                >
+                <span class="text-[1.0625rem] font-bold text-strong">你打算托管几个网站？</span>
+              </span>
+            </legend>
+            <div class="mt-5 grid gap-2.5 sm:grid-cols-2">
+              {
+                [
+                  { v: '1', label: '只有 1 个', hint: '个人博客或单页展示' },
+                  { v: '2-5', label: '2 到 5 个', hint: '多业务或多语言站' },
+                  { v: '6-25', label: '6 到 25 个', hint: '内容矩阵 / 小团队' },
+                  { v: '25+', label: '25 个以上', hint: '代理交付或大批量' },
+                ].map((opt) => (
+                  <label class="group relative flex cursor-pointer items-start gap-3 rounded-xl border border-[var(--hairline)] p-4 transition-all hover:border-brand-300 has-checked:border-brand-500 has-checked:bg-brand-50">
+                    <input type="radio" name="websites" value={opt.v} class="peer sr-only" />
+                    <span class="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border-2 border-ink-300 peer-checked:border-brand-600 peer-checked:bg-brand-600 peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-brand-600">
+                      <span class="h-1.5 w-1.5 rounded-full bg-white" />
+                    </span>
+                    <span>
+                      <span class="block text-[0.875rem] font-semibold text-strong">{opt.label}</span>
+                      <span class="mt-0.5 block text-[0.75rem] text-soft">{opt.hint}</span>
+                    </span>
+                  </label>
+                ))
+              }
+            </div>
+          </fieldset>
+
+          {/* Q2 技术能力 */}
+          <fieldset class="rounded-2xl border border-[var(--hairline)] bg-white p-6">
+            <legend class="px-1">
+              <span class="flex items-center gap-2.5">
+                <span
+                  class="flex h-7 w-7 items-center justify-center rounded-full bg-brand-600 text-[0.75rem] font-bold text-white"
+                  >2</span
+                >
+                <span class="text-[1.0625rem] font-bold text-strong">你的技术背景是？</span>
+              </span>
+            </legend>
+            <div class="mt-5 grid gap-2.5 sm:grid-cols-2">
+              {
+                [
+                  { v: 'no-code', label: '完全不懂代码', hint: '希望有图形界面，不想碰命令行' },
+                  { v: 'basic', label: '会用 WordPress', hint: '装过插件主题，没动过服务器' },
+                  { v: 'comfortable', label: '熟悉命令行', hint: '能配 SSH、改配置文件' },
+                  { v: 'expert', label: '有运维经验', hint: '会管理服务器、配置安全策略' },
+                ].map((opt) => (
+                  <label class="group relative flex cursor-pointer items-start gap-3 rounded-xl border border-[var(--hairline)] p-4 transition-all hover:border-brand-300 has-checked:border-brand-500 has-checked:bg-brand-50">
+                    <input type="radio" name="skill" value={opt.v} class="peer sr-only" />
+                    <span class="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border-2 border-ink-300 peer-checked:border-brand-600 peer-checked:bg-brand-600">
+                      <span class="h-1.5 w-1.5 rounded-full bg-white" />
+                    </span>
+                    <span>
+                      <span class="block text-[0.875rem] font-semibold text-strong">{opt.label}</span>
+                      <span class="mt-0.5 block text-[0.75rem] text-soft">{opt.hint}</span>
+                    </span>
+                  </label>
+                ))
+              }
+            </div>
+          </fieldset>
+
+          {/* Q3 流量规模 */}
+          <fieldset class="rounded-2xl border border-[var(--hairline)] bg-white p-6">
+            <legend class="px-1">
+              <span class="flex items-center gap-2.5">
+                <span
+                  class="flex h-7 w-7 items-center justify-center rounded-full bg-brand-600 text-[0.75rem] font-bold text-white"
+                  >3</span
+                >
+                <span class="text-[1.0625rem] font-bold text-strong">预期的访问规模？</span>
+              </span>
+            </legend>
+            <div class="mt-5 grid gap-2.5 sm:grid-cols-2">
+              {
+                [
+                  { v: 'low', label: '起步阶段', hint: '日均 500 PV 以内' },
+                  { v: 'medium', label: '稳定增长', hint: '日均 500 到 3 万 PV' },
+                  { v: 'high', label: '已有规模', hint: '日均 3 万 PV 以上' },
+                  { v: 'spiky', label: '有突发流量', hint: '跑广告 / 内容可能爆款' },
+                ].map((opt) => (
+                  <label class="group relative flex cursor-pointer items-start gap-3 rounded-xl border border-[var(--hairline)] p-4 transition-all hover:border-brand-300 has-checked:border-brand-500 has-checked:bg-brand-50">
+                    <input type="radio" name="traffic" value={opt.v} class="peer sr-only" />
+                    <span class="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border-2 border-ink-300 peer-checked:border-brand-600 peer-checked:bg-brand-600">
+                      <span class="h-1.5 w-1.5 rounded-full bg-white" />
+                    </span>
+                    <span>
+                      <span class="block text-[0.875rem] font-semibold text-strong">{opt.label}</span>
+                      <span class="mt-0.5 block text-[0.75rem] text-soft">{opt.hint}</span>
+                    </span>
+                  </label>
+                ))
+              }
+            </div>
+          </fieldset>
+
+          {/* Q4 用途 */}
+          <fieldset class="rounded-2xl border border-[var(--hairline)] bg-white p-6">
+            <legend class="px-1">
+              <span class="flex items-center gap-2.5">
+                <span
+                  class="flex h-7 w-7 items-center justify-center rounded-full bg-brand-600 text-[0.75rem] font-bold text-white"
+                  >4</span
+                >
+                <span class="text-[1.0625rem] font-bold text-strong">网站的主要用途？</span>
+              </span>
+            </legend>
+            <div class="mt-5 grid gap-2.5 sm:grid-cols-2">
+              {
+                [
+                  { v: 'content', label: '内容 / 博客', hint: '靠流量与广告变现' },
+                  { v: 'business', label: '企业官网', hint: '展示为主，需要专业形象' },
+                  { v: 'ecommerce', label: '电商卖货', hint: '有订单与支付，怕数据丢失' },
+                  { v: 'service', label: '自建服务', hint: '跑 API、Docker 或非 Web 服务' },
+                ].map((opt) => (
+                  <label class="group relative flex cursor-pointer items-start gap-3 rounded-xl border border-[var(--hairline)] p-4 transition-all hover:border-brand-300 has-checked:border-brand-500 has-checked:bg-brand-50">
+                    <input type="radio" name="purpose" value={opt.v} class="peer sr-only" />
+                    <span class="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border-2 border-ink-300 peer-checked:border-brand-600 peer-checked:bg-brand-600">
+                      <span class="h-1.5 w-1.5 rounded-full bg-white" />
+                    </span>
+                    <span>
+                      <span class="block text-[0.875rem] font-semibold text-strong">{opt.label}</span>
+                      <span class="mt-0.5 block text-[0.75rem] text-soft">{opt.hint}</span>
+                    </span>
+                  </label>
+                ))
+              }
+            </div>
+          </fieldset>
+
+          <div class="flex flex-wrap items-center gap-3">
+            <button type="submit" class="btn btn-lg btn-primary" id="finder-submit">
+              <Icon name="target" size={18} />
+              查看推荐结果
+            </button>
+            <button type="button" class="btn btn-lg btn-ghost" id="finder-reset">重新填写</button>
+            <p class="ml-auto text-[0.75rem] text-faint" id="finder-progress">已完成 0 / 4</p>
+          </div>
+        </form>
+
+        {/* ══════ 结果区 ══════ */}
+        <div id="finder-result" class="mt-10 hidden scroll-mt-28">
+          <div id="result-content"></div>
+        </div>
+      </div>
+
+      {/* ══════ 右侧说明栏 ══════ */}
+      <aside class="lg:sticky lg:top-28 lg:self-start">
+        <div class="rounded-2xl border border-[var(--hairline)] bg-white p-6 shadow-soft">
+          <h2 class="text-[0.8125rem] font-bold uppercase tracking-wider text-strong">
+            <Icon name="info" size={15} class="mr-1.5 inline align-[-2px] text-brand-600" />
+            这个工具怎么判断
+          </h2>
+          <ul class="mt-4 space-y-3.5">
+            {
+              [
+                {
+                  icon: 'grid',
+                  title: '网站数量决定档位',
+                  text: 'Single 只支持 1 个站，Premium 支持 25 个、Business 100 个。额度不够时升级的代价高于一次买对。',
+                },
+                {
+                  icon: 'terminal',
+                  title: '技术能力决定产品线',
+                  text: '不懂命令行就不该选 VPS —— 即使配置更高，未经优化的 VPS 实际表现可能不如托管环境。',
+                },
+                {
+                  icon: 'activity',
+                  title: '流量特征决定架构',
+                  text: '有突发流量的站点需要资源隔离（Cloud Hosting），而不是堆共享资源。',
+                },
+                {
+                  icon: 'credit',
+                  title: '用途决定备份要求',
+                  text: '有订单的电商站必须每日备份。每周备份意味着最坏情况丢失 6 天订单。',
+                },
+              ].map((item) => (
+                <li class="flex gap-3">
+                  <span class="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-brand-100 text-brand-700">
+                    <Icon name={item.icon} size={14} />
+                  </span>
+                  <span>
+                    <span class="block text-[0.8125rem] font-semibold text-strong">{item.title}</span>
+                    <span class="mt-1 block text-[0.75rem] leading-relaxed text-soft">{item.text}</span>
+                  </span>
+                </li>
+              ))
+            }
+          </ul>
+        </div>
+
+        <div class="mt-5 rounded-2xl border border-accent-200 bg-accent-50 p-6">
+          <h2 class="flex items-center gap-2 text-[0.875rem] font-bold text-accent-900">
+            <Icon name="percent" size={16} />
+            拿到结果后记得
+          </h2>
+          <ol class="mt-3.5 space-y-2.5">
+            {
+              [
+                '把付款时长选到最长（48 个月或 24 个月）',
+                `在结账页输入优惠码 ${AFFILIATE.couponCode}`,
+                '确认订单金额已减少再付款',
+                '把续费日期记进日历',
+              ].map((step, i) => (
+                <li class="flex gap-2.5 text-[0.75rem] leading-relaxed text-accent-900">
+                  <span class="flex h-4.5 w-4.5 shrink-0 items-center justify-center rounded-full bg-accent-600 text-[0.6rem] font-bold text-white">
+                    {i + 1}
+                  </span>
+                  <span>{step}</span>
+                </li>
+              ))
+            }
+          </ol>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <script define:vars={{ planData, finderBaseUrl }}>
+    const form = document.getElementById('finder-form');
+    const result = document.getElementById('finder-result');
+    const resultContent = document.getElementById('result-content');
+    const progress = document.getElementById('finder-progress');
+    const resetBtn = document.getElementById('finder-reset');
+    /**
+     * 优惠力度从数据层传入，不要在模板里写死百分比 ——
+     * 否则改优惠码时这里会变成漏网的硬编码。
+     */
+    const AFFILIATE_PERCENT = planData[0]?.affiliatePercent ?? 0;
+    const AFFILIATE_PERCENT_DECIMAL = AFFILIATE_PERCENT / 100;
+    const AFFILIATE_CODE = planData[0]?.couponCode ?? '';
+
+    const updateProgress = () => {
+      const n = new FormData(form).keys ? [...new FormData(form).keys()].filter((k) => k !== '').length : 0;
+      if (progress) progress.textContent = `已完成 ${n} / 4`;
+    };
+    form?.addEventListener('change', updateProgress);
+
+    /* ── 匹配逻辑 ── */
+    const pick = (answers) => {
+      const { websites, skill, traffic, purpose } = answers;
+
+      /* 需要自建服务 → 只能 VPS */
+      if (purpose === 'service') {
+        if (skill === 'no-code' || skill === 'basic') {
+          return {
+            category: 'vps',
+            planId: 'vps-kvm1',
+            warning:
+              '你选择了「自建服务」但技术背景偏基础。VPS 会给你 root 权限，同时也把系统更新、安全加固、备份策略全部交给你。如果不想承担这些，请重新评估是否真的需要非 Web 服务。',
+          };
+        }
+        return { category: 'vps', planId: traffic === 'high' ? 'vps-kvm4' : 'vps-kvm2', warning: null };
+      }
+
+      /* 完全不懂代码 + 非电商 → Website Builder */
+      if (skill === 'no-code' && purpose !== 'ecommerce') {
+        return { category: 'builder', planId: 'builder-premium', warning: null };
+      }
+      if (skill === 'no-code' && purpose === 'ecommerce') {
+        return { category: 'builder', planId: 'builder-business', warning: null };
+      }
+
+      /* 电商 → 至少要 Business 或 Cloud */
+      if (purpose === 'ecommerce') {
+        if (traffic === 'high' || traffic === 'spiky' || websites === '25+') {
+          return { category: 'cloud', planId: 'cloud-professional', warning: null };
+        }
+        if (traffic === 'spiky') {
+          return { category: 'cloud', planId: 'cloud-startup', warning: null };
+        }
+        return { category: 'shared', planId: 'shared-business', warning: null };
+      }
+
+      /* 有突发流量 → Cloud 的资源隔离是刚需 */
+      if (traffic === 'spiky') {
+        return {
+          category: 'cloud',
+          planId: skill === 'comfortable' || skill === 'expert' ? 'cloud-professional' : 'cloud-startup',
+          warning: null,
+        };
+      }
+
+      /* 高流量 + 有运维能力 → 可以上 VPS 拿更多资源 */
+      if (traffic === 'high') {
+        if (skill === 'comfortable' || skill === 'expert') {
+          return { category: 'vps', planId: 'vps-kvm4', warning: null };
+        }
+        return { category: 'cloud', planId: 'cloud-professional', warning: null };
+      }
+
+      /* 网站数量多的普通场景 */
+      if (websites === '25+') {
+        return {
+          category: skill === 'comfortable' || skill === 'expert' ? 'vps' : 'shared',
+          planId: skill === 'comfortable' || skill === 'expert' ? 'vps-kvm4' : 'shared-business',
+          warning: null,
+        };
+      }
+      if (websites === '6-25') {
+        return { category: 'shared', planId: 'shared-business', warning: null };
+      }
+
+      /* 默认：新手标准答案 */
+      return { category: 'shared', planId: 'shared-premium', warning: null };
+    };
+
+    const renderResult = (answers) => {
+      const { planId, warning } = pick(answers);
+      const plan = planData.find((p) => p.id === planId);
+      if (!plan) return;
+
+      const savePercent = Math.round((1 - plan.promoPrice / plan.regularPrice) * 100);
+      const firstYear = Math.round(plan.promoPrice * 12 * (1 - 0.10));
+      const renewalYear = Math.round(plan.renewalPrice * 12);
+      const diff = renewalYear - firstYear;
+
+      /* 备选方案：同价位附近的另一个选择 */
+      const alt = planData
+        .filter((p) => p.id !== plan.id && Math.abs(p.promoPrice - plan.promoPrice) <= 20)
+        .sort((a, b) => Math.abs(a.promoPrice - plan.promoPrice) - Math.abs(b.promoPrice - plan.promoPrice))[0];
+
+      const html = `
+        <div class="rounded-2xl border-2 border-brand-300 bg-white shadow-lift">
+          <div class="rounded-t-[calc(1rem-2px)] bg-gradient-to-br from-brand-600 to-brand-800 px-6 py-5">
+            <span class="badge bg-white/20 text-white backdrop-blur">
+              <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.6L18.5 9.5l-4.6 1.9L12 16l-1.9-4.6L5.5 9.5l4.6-1.9L12 3Z"/></svg>
+              为你推荐
+            </span>
+            <h2 class="mt-3 text-h2 font-extrabold text-white">${plan.fullName}</h2>
+            <p class="mt-2 text-[0.9375rem] text-brand-100">${plan.tagline}</p>
+          </div>
+
+          <div class="p-6">
+            ${
+              warning
+                ? `<div class="mb-6 flex items-start gap-3 rounded-xl border border-gold-400 bg-[#fef6e7] px-4 py-3.5">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" class="mt-0.5 shrink-0 text-[#8a5b00]"><path d="M12 3.5 2.5 20h19L12 3.5Z"/><path d="M12 10v4M12 17h.01"/></svg>
+                    <p class="text-[0.8125rem] leading-relaxed text-[#6b4400]">${warning}</p>
+                  </div>`
+                : ''
+            }
+
+            <div class="grid gap-6 sm:grid-cols-2">
+              <div>
+                <h3 class="text-[0.75rem] font-bold uppercase tracking-wider text-soft">成本测算</h3>
+                <dl class="mt-3.5 space-y-3">
+                  <div class="flex items-baseline justify-between gap-3 border-b border-[var(--hairline)] pb-3">
+                    <dt class="text-[0.8125rem] text-soft">首年成本（含优惠码）</dt>
+                    <dd class="text-[0.9375rem] font-bold text-strong tabular-nums">¥${firstYear.toLocaleString()}</dd>
+                  </div>
+                  <div class="flex items-baseline justify-between gap-3 border-b border-[var(--hairline)] pb-3">
+                    <dt class="text-[0.8125rem] text-soft">续费年成本</dt>
+                    <dd class="text-[0.9375rem] font-semibold text-deal-500 tabular-nums">¥${renewalYear.toLocaleString()}</dd>
+                  </div>
+                  <div class="flex items-baseline justify-between gap-3">
+                    <dt class="text-[0.8125rem] text-soft">续费涨幅</dt>
+                    <dd class="text-[0.9375rem] font-semibold text-deal-500">+¥${diff.toLocaleString()}</dd>
+                  </div>
+                </dl>
+                <p class="mt-3.5 text-[0.7rem] leading-relaxed text-faint">
+                  月均 ¥${plan.promoPrice}（促销）· 续费 ¥${plan.renewalPrice}/月 · ${plan.termLabel}付
+                </p>
+              </div>
+
+              <div>
+                <h3 class="text-[0.75rem] font-bold uppercase tracking-wider text-soft">核心理由</h3>
+                <p class="mt-3.5 text-[0.8125rem] leading-relaxed text-body">${plan.verdict}</p>
+                <div class="mt-4 rounded-lg bg-[var(--surface-muted)] p-3.5">
+                  <p class="text-[0.75rem] font-semibold text-strong">最适合</p>
+                  <p class="mt-1 text-[0.75rem] leading-relaxed text-soft">${plan.bestFor}</p>
+                </div>
+                ${
+                  plan.caveat
+                    ? `<div class="mt-3 rounded-lg border border-[#fdeceb] bg-[#fdeceb]/50 p-3.5">
+                        <p class="text-[0.75rem] font-semibold text-[#a7211a]">需要注意</p>
+                        <p class="mt-1 text-[0.75rem] leading-relaxed text-[#7a1810]">${plan.caveat}</p>
+                      </div>`
+                    : ''
+                }
+              </div>
+            </div>
+
+            <div class="mt-6 rounded-xl bg-brand-50 p-4">
+              <p class="text-[0.75rem] font-semibold text-brand-900">
+                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-1 inline align-[-2px]"><path d="M9 18h6M10 21h4"/><path d="M12 3a5.5 5.5 0 0 0-3 10.1V18h6v-4.9A5.5 5.5 0 0 0 12 3Z"/></svg>
+                成本优化建议
+              </p>
+              <ul class="mt-2.5 space-y-1.5">
+                <li class="text-[0.75rem] leading-relaxed text-brand-900">
+                  · 选 <strong>${plan.termLabel}</strong> 付款拿到最低月均价，实付约 ¥${(plan.upfrontTotal || plan.promoPrice * 12).toLocaleString()}
+                </li>
+                <li class="text-[0.75rem] leading-relaxed text-brand-900">
+                  · 结账页输入优惠码 <code class="rounded bg-white px-1.5 py-0.5 font-mono font-bold">${AFFILIATE_CODE}</code> 再省 ${AFFILIATE_PERCENT}%
+                </li>
+                <li class="text-[0.75rem] leading-relaxed text-brand-900">
+                  · 首年节省 ¥${Math.round(plan.promoPrice * 12 * AFFILIATE_PERCENT_DECIMAL).toLocaleString()}，并为续费预留 ¥${renewalYear.toLocaleString()}/年 的预算
+                </li>
+              </ul>
+            </div>
+
+            <div class="mt-6 flex flex-wrap gap-3">
+              <a
+                href="${finderBaseUrl}&sub_id=finder-${plan.campaign}"
+                target="_blank"
+                rel="sponsored noopener noreferrer"
+                class="btn btn-lg btn-primary"
+              >
+                领取 ${plan.name} 优惠
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg>
+              </a>
+              <a href="/pricing" class="btn btn-lg btn-outline">对比全部套餐</a>
+            </div>
+
+            ${
+              alt
+                ? `<div class="mt-6 border-t border-[var(--hairline)] pt-5">
+                    <p class="text-[0.75rem] font-semibold text-soft">另一个可以考虑的选项</p>
+                    <a href="/pricing" class="group mt-3 flex items-start justify-between gap-4 rounded-xl border border-[var(--hairline)] p-4 transition-colors hover:border-brand-200">
+                      <span>
+                        <span class="block text-[0.875rem] font-bold text-strong">${alt.fullName}</span>
+                        <span class="mt-1 block text-[0.75rem] leading-relaxed text-soft">${alt.tagline}</span>
+                      </span>
+                      <span class="shrink-0 text-right">
+                        <span class="block text-[1.0625rem] font-extrabold text-strong tabular-nums">¥${alt.promoPrice}</span>
+                        <span class="block text-[0.7rem] text-soft">/ 月</span>
+                      </span>
+                    </a>
+                  </div>`
+                : ''
+            }
+          </div>
+        </div>
+      `;
+
+      if (resultContent) {
+        resultContent.innerHTML = html;
+      }
+      result?.classList.remove('hidden');
+      result?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
+
+    form?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const fd = new FormData(form);
+      const answers = {
+        websites: fd.get('websites'),
+        skill: fd.get('skill'),
+        traffic: fd.get('traffic'),
+        purpose: fd.get('purpose'),
+      };
+      const missing = Object.entries(answers).filter(([, v]) => !v);
+      if (missing.length > 0) {
+        alert(`还有 ${missing.length} 个问题未回答，请全部选择后再查看结果。`);
+        return;
+      }
+      renderResult(answers);
+    });
+
+    resetBtn?.addEventListener('click', () => {
+      form?.reset();
+      result?.classList.add('hidden');
+      updateProgress();
+      window.scrollTo({ top: 200, behavior: 'smooth' });
+    });
+  </script>
+</BaseLayout>

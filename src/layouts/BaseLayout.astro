@@ -1,0 +1,164 @@
+---
+/**
+ * BaseLayout —— 全站基础布局
+ * 负责：SEO 元信息、结构化数据、字体、全局样式、导航与页脚
+ */
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import '../styles/global.css';
+import { SITE } from '../consts';
+
+interface Props {
+  title: string;
+  description?: string;
+  /** 覆盖默认分享图 */
+  ogImage?: string;
+  /** 是否 noindex（如搜索结果页、CMS 后台） */
+  noindex?: boolean;
+  /** 额外的结构化数据（对象或对象数组） */
+  schema?: object | object[];
+  /** 页面类型，影响 OG 标签 */
+  type?: 'website' | 'article';
+  /** 文章发布与更新时间（article 类型时使用） */
+  publishedTime?: Date;
+  modifiedTime?: Date;
+  author?: string;
+  keywords?: string[];
+  /** 页面主色，用于主题色 meta */
+  class?: string;
+}
+
+const {
+  title,
+  description = SITE.description,
+  ogImage = SITE.ogImage,
+  noindex = false,
+  schema,
+  type = 'website',
+  publishedTime,
+  modifiedTime,
+  author,
+  keywords = [],
+  class: className = '',
+} = Astro.props;
+
+const currentPath = Astro.url.pathname;
+const canonical = new URL(currentPath, SITE.url).toString();
+const ogImageUrl = new URL(ogImage, SITE.url).toString();
+const fullTitle = title.includes(SITE.name) ? title : `${title} | ${SITE.name}`;
+
+/* ── 全站默认结构化数据 ── */
+const orgSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: SITE.name,
+  url: SITE.url,
+  description: SITE.description,
+  email: SITE.email,
+};
+
+const siteSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: SITE.name,
+  url: SITE.url,
+  inLanguage: SITE.lang,
+  description: SITE.description,
+};
+
+const extraSchemas = schema ? (Array.isArray(schema) ? schema : [schema]) : [];
+---
+
+<!doctype html>
+<html lang={SITE.lang} class="scroll-smooth">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="generator" content={Astro.generator} />
+
+    {/* ── 基础 SEO ── */}
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    {keywords.length > 0 && <meta name="keywords" content={keywords.join(', ')} />}
+    {noindex && <meta name="robots" content="noindex, nofollow" />}
+    {!noindex && <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1" />}
+
+    {/* 主题色与移动端优化 */}
+    <meta name="theme-color" content="#673DE6" />
+    <meta name="color-scheme" content="light" />
+    <meta name="format-detection" content="telephone=no" />
+
+    {/* ── Open Graph ── */}
+    <meta property="og:type" content={type} />
+    <meta property="og:site_name" content={SITE.name} />
+    <meta property="og:locale" content="zh_CN" />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImageUrl} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+
+    {
+      type === 'article' && publishedTime && (
+        <meta property="article:published_time" content={publishedTime.toISOString()} />
+      )
+    }
+    {
+      type === 'article' && modifiedTime && (
+        <meta property="article:modified_time" content={modifiedTime.toISOString()} />
+      )
+    }
+    {type === 'article' && author && <meta property="article:author" content={author} />}
+
+    {/* ── Twitter Card ── */}
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content={SITE.twitter} />
+    <meta name="twitter:title" content={fullTitle} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImageUrl} />
+
+    {/* ── RSS ── */}
+    <link
+      rel="alternate"
+      type="application/rss+xml"
+      title={`${SITE.name} 最新文章`}
+      href={new URL('/rss.xml', SITE.url).toString()}
+    />
+
+    {/* ── 结构化数据 ── */}
+    <script type="application/ld+json" set:html={JSON.stringify(orgSchema)} />
+    <script type="application/ld+json" set:html={JSON.stringify(siteSchema)} />
+    {extraSchemas.map((s) => <script type="application/ld+json" set:html={JSON.stringify(s)} />)}
+
+    {/* ── 字体 ── */}
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+
+    {/* ── 联盟外链预连接，缩短跳转延迟 ── */}
+    <link rel="dns-prefetch" href="https://www.hostinger.com" />
+  </head>
+
+  <body class:list={['flex min-h-screen flex-col bg-white antialiased', className]}>
+    <a
+      href="#main-content"
+      class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-lg focus:bg-brand-600 focus:px-4 focus:py-2.5 focus:text-sm focus:font-semibold focus:text-white"
+    >
+      跳到主要内容
+    </a>
+
+    <Header currentPath={currentPath} />
+
+    <main id="main-content" class="flex-1">
+      <slot />
+    </main>
+
+    <Footer />
+  </body>
+</html>

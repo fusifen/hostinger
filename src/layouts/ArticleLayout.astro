@@ -1,0 +1,426 @@
+---
+/**
+ * ArticleLayout —— 文章详情页布局
+ * 三栏结构：左侧目录（吸顶）· 中间正文 · 右侧转化区
+ * 移动端折叠为单栏，目录转为正文顶部的折叠面板
+ */
+import type { CollectionEntry } from 'astro:content';
+import { getCollection } from 'astro:content';
+import BaseLayout from './BaseLayout.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+import TOC from '../components/TOC.astro';
+import FAQ from '../components/FAQ.astro';
+import Stars from '../components/Stars.astro';
+import ArticleCard from '../components/ArticleCard.astro';
+import AffiliateButton from '../components/AffiliateButton.astro';
+import DealBanner from '../components/DealBanner.astro';
+import Icon from '../components/Icon.astro';
+import { SITE, getCategory, articleUrl, type CategorySlug } from '../consts';
+
+interface Props {
+  article: CollectionEntry<'articles'>;
+  headings: { depth: number; slug: string; text: string }[];
+}
+
+const { article, headings } = Astro.props;
+const d = article.data;
+const cat = getCategory(d.category);
+
+/* ── 关联套餐（用于侧边栏转化） ── */
+const allPlans = await getCollection('hostingerPlans', ({ data }) => data.active);
+const featuredPlan = d.featuredPlan
+  ? allPlans.find((p) => p.id === d.featuredPlan)
+  : allPlans.filter((p) => p.data.bestValue)[0];
+
+/* ── 相关文章：优先按手动指定，其次按同分类 + 共享标签 ── */
+const allArticles = await getCollection('articles', ({ data }) => !data.draft);
+const related = (() => {
+  if (d.related.length > 0) {
+    return allArticles.filter((a) => d.related.includes(a.id)).slice(0, 4);
+  }
+  return allArticles
+    .filter((a) => a.id !== article.id)
+    .map((a) => {
+      let score = 0;
+      if (a.data.category === d.category) score += 3;
+      score += a.data.tags.filter((t) => d.tags.includes(t)).length * 2;
+      score += a.data.keywords.filter((k) => d.keywords.includes(k)).length;
+      return { a, score };
+    })
+    .filter((x) => x.score > 0)
+    .sort((x, y) => y.score - x.score)
+    .slice(0, 4)
+    .map((x) => x.a);
+})();
+
+const readTime = d.readingTime ?? Math.max(3, Math.round(d.description.length / 55));
+
+const categoryPath: Record<string, string> = {
+  reviews: '/reviews',
+  tutorials: '/tutorials',
+  deals: '/deals',
+  comparison: '/blog',
+  faq: '/blog',
+};
+
+const basePath = categoryPath[d.category] ?? '/blog';
+/** 当前文章自身的规范路径（Content Layer 的 id 含子目录，必须去掉） */
+const selfUrl = articleUrl(article);
+
+/* ── 结构化数据 ── */
+const articleSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Article',
+  headline: d.title,
+  description: d.description,
+  image: [new URL(SITE.ogImage, SITE.url).toString()],
+  datePublished: d.pubDate.toISOString(),
+  dateModified: (d.updatedDate ?? d.pubDate).toISOString(),
+  author: { '@type': 'Person', name: d.author },
+  publisher: {
+    '@type': 'Organization',
+    name: SITE.name,
+    url: SITE.url,
+  },
+  mainEntityOfPage: { '@type': 'WebPage', '@id': new URL(selfUrl, SITE.url).toString() },
+  inLanguage: SITE.lang,
+  articleSection: cat?.label,
+  keywords: [...d.tags, ...d.keywords].join(', '),
+};
+
+const schemas = [articleSchema];
+if (featuredPlan) {
+  schemas.push({
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: featuredPlan.data.fullName,
+    description: featuredPlan.data.tagline,
+    brand: { '@type': 'Brand', name: 'Hostinger' },
+    offers: {
+      '@type': 'Offer',
+      price: featuredPlan.data.pricing.promoPrice,
+      priceCurrency: 'CNY',
+      availability: 'https://schema.org/InStock',
+    },
+    aggregateRating: {
+      '@type': 'AggregateRating',
+      ratingValue: featuredPlan.data.rating,
+      reviewCount: featuredPlan.data.reviewCount,
+      bestRating: 5,
+    },
+  } as object);
+}
+---
+
+<BaseLayout
+  title={d.title}
+  description={d.description}
+  type="article"
+  publishedTime={d.pubDate}
+  modifiedTime={d.updatedDate}
+  author={d.author}
+  keywords={[...d.tags, ...d.keywords]}
+  schema={schemas}
+>
+  <div class="border-b border-[var(--hairline)] bg-[var(--surface-muted)]">
+    <div class="container-page py-4">
+      <Breadcrumbs
+        items={[
+          ...(cat ? [{ label: cat.label, href: basePath }] : []),
+          { label: d.title },
+        ]}
+      />
+    </div>
+  </div>
+
+  <div class="container-page py-10 lg:py-14">
+    <div class="grid gap-10 lg:grid-cols-[minmax(0,1fr)_320px] xl:gap-14">
+      {/* ══════════ 主内容列 ══════════ */}
+      <div class="min-w-0">
+        {/* ── 文章头部 ── */}
+        <header class="mb-9">
+          <div class="flex flex-wrap items-center gap-2">
+            {cat && <span class="badge badge-brand">{cat.label}</span>}
+            {d.featured && (
+              <span class="badge badge-gold">
+                <Icon name="award" size={12} />
+                编辑精选
+              </span>
+            )}
+            <span class="badge badge-neutral">
+              <Icon name="clock" size={12} />
+              {readTime} 分钟阅读
+            </span>
+          </div>
+
+          <h1 class="mt-4 text-h1 font-extrabold leading-tight text-strong">{d.title}</h1>
+
+          <p class="mt-4 text-[1.0625rem] leading-relaxed text-soft">{d.description}</p>
+
+          <div class="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2.5 border-y border-[var(--hairline)] py-4 text-[0.8125rem]">
+            <span class="inline-flex items-center gap-2">
+              <span
+                class="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-brand-500 to-brand-700 text-[0.7rem] font-bold text-white"
+              >
+                {d.author.slice(0, 1)}
+              </span>
+              <span class="font-semibold text-strong">{d.author}</span>
+            </span>
+            <span class="inline-flex items-center gap-1.5 text-soft">
+              <Icon name="calendar" size={14} />
+              发布 {d.pubDate.toLocaleDateString('zh-CN')}
+            </span>
+            {
+              d.updatedDate && (
+                <span class="inline-flex items-center gap-1.5 text-soft">
+                  <Icon name="refresh" size={14} />
+                  更新 {d.updatedDate.toLocaleDateString('zh-CN')}
+                </span>
+              )
+            }
+          </div>
+
+          {/* 联盟披露 —— 文章顶部显式声明，合规且建立信任 */}
+          {
+            d.affiliateNotice && (
+              <div class="mt-5 flex items-start gap-2.5 rounded-xl border border-brand-100 bg-brand-50/70 px-4 py-3">
+                <Icon name="info" size={16} class="mt-0.5 shrink-0 text-brand-600" />
+                <p class="text-[0.75rem] leading-relaxed text-brand-900">
+                  <strong class="font-semibold">推广披露：</strong>
+                  本文包含 Hostinger 联盟推广链接。您通过链接购买时我们可能获得佣金，
+                  但<strong class="font-semibold">不会影响您支付的价格</strong>，也不影响我们的评测结论。
+                  所有产品均为自费购买实测。
+                </p>
+              </div>
+            )
+          }
+        </header>
+
+        {/* ── 正文 + 侧栏（桌面） ── */}
+        <div class="grid gap-10 lg:grid-cols-[200px_minmax(0,1fr)] xl:gap-12">
+          {/* 左侧目录（桌面端吸顶） */}
+          <div class="hidden lg:block">
+            <div class="sticky top-28">
+              <TOC headings={headings} />
+            </div>
+          </div>
+
+          {/* 正文 */}
+          <div class="min-w-0">
+            {/* 移动端目录 */}
+            {
+              headings.filter((h) => h.depth === 2).length >= 3 && (
+                <details class="mb-8 rounded-xl border border-[var(--hairline)] bg-white lg:hidden">
+                  <summary class="flex cursor-pointer list-none items-center gap-2 px-5 py-4 text-[0.875rem] font-semibold text-strong">
+                    <Icon name="list" size={16} class="text-brand-600" />
+                    展开本文目录
+                  </summary>
+                  <ul class="space-y-0.5 border-t border-[var(--hairline)] px-3 py-3">
+                    {headings
+                      .filter((h) => h.depth <= 3)
+                      .map((h) => (
+                        <li>
+                          <a
+                            href={`#${h.slug}`}
+                            class:list={[
+                              'block rounded-md px-2 py-1.5 text-[0.8125rem] text-soft',
+                              h.depth === 3 && 'pl-6 text-[0.75rem]',
+                            ]}
+                          >
+                            {h.text}
+                          </a>
+                        </li>
+                      ))}
+                  </ul>
+                </details>
+              )
+            }
+
+            {/* 正文内容 */}
+            <div class="prose-site">
+              <slot />
+            </div>
+
+            {/* 正文后的 FAQ */}
+            {
+              d.faqs.length > 0 && (
+                <div class="mt-14">
+                  <FAQ faqs={d.faqs} title="关于本文主题的常见问题" emitSchema />
+                </div>
+              )
+            }
+
+            {/* 正文后的转化横幅 */}
+            {
+              featuredPlan && (
+                <DealBanner
+                  variant="inline"
+                  plan={featuredPlan as any}
+                  headline={d.ctaHeadline ?? `推荐套餐：Hostinger ${featuredPlan.data.name}`}
+                  body={d.ctaBody}
+                />
+              )
+            }
+
+            {/* 标签 */}
+            {
+              d.tags.length > 0 && (
+                <div class="mt-10 flex flex-wrap items-center gap-2 border-t border-[var(--hairline)] pt-7">
+                  <span class="text-[0.8125rem] font-semibold text-soft">
+                    <Icon name="tag" size={14} class="mr-1 inline align-[-2px]" />
+                    标签
+                  </span>
+                  {d.tags.map((tag) => (
+                    <a
+                      href={`/blog?tag=${encodeURIComponent(tag)}`}
+                      class="rounded-lg bg-[var(--surface-muted)] px-2.5 py-1.5 text-[0.75rem] font-medium text-soft transition-colors hover:bg-brand-50 hover:text-brand-700"
+                    >
+                      #{tag}
+                    </a>
+                  ))}
+                </div>
+              )
+            }
+
+            {/* 相关文章 */}
+            {
+              related.length > 0 && (
+                <section class="mt-12" aria-labelledby="related-heading">
+                  <h2 id="related-heading" class="text-h3 font-bold">
+                    继续阅读
+                  </h2>
+                  <div class="mt-5 grid gap-4 sm:grid-cols-2">
+                    {related.map((a) => (
+                      <ArticleCard
+                        article={a as any}
+                        href={articleUrl(a)}
+                        variant="compact"
+                        class="rounded-xl border border-[var(--hairline)] bg-white p-4 transition-colors hover:border-brand-200"
+                      />
+                    ))}
+                  </div>
+                </section>
+              )
+            }
+          </div>
+        </div>
+      </div>
+
+      {/* ══════════ 右侧转化栏 ══════════ */}
+      <aside class="lg:sticky lg:top-28 lg:self-start">
+        <div class="space-y-5">
+          {
+            featuredPlan && (
+              <div class="overflow-hidden rounded-2xl border-2 border-brand-200 bg-white shadow-card">
+                <div class="bg-gradient-to-br from-brand-600 to-brand-800 px-5 py-3.5">
+                  <p class="flex items-center gap-1.5 text-[0.7rem] font-bold uppercase tracking-wider text-brand-200">
+                    <Icon name="zap" size={12} />
+                    本文推荐套餐
+                  </p>
+                </div>
+
+                <div class="p-5">
+                  <h2 class="text-[1.125rem] font-bold text-strong">{featuredPlan.data.name}</h2>
+                  <p class="mt-1 text-[0.75rem] leading-snug text-soft">{featuredPlan.data.tagline}</p>
+
+                  <div class="mt-3">
+                    <Stars
+                      rating={featuredPlan.data.rating}
+                      count={featuredPlan.data.reviewCount}
+                      size={12}
+                      showValue
+                    />
+                  </div>
+
+                  <div class="mt-4 rounded-xl bg-brand-50 p-3.5">
+                    <div class="flex items-end gap-1.5">
+                      <span class="text-[0.7rem] font-medium text-soft">
+                        {featuredPlan.data.pricing.currency}
+                      </span>
+                      <span class="price-now text-[1.875rem] leading-none">
+                        {featuredPlan.data.pricing.promoPrice}
+                      </span>
+                      <span class="mb-0.5 text-[0.7rem] text-soft">/ 月</span>
+                    </div>
+                    <p class="mt-1.5 flex items-center gap-2 text-[0.7rem]">
+                      <span class="price-was">
+                        {featuredPlan.data.pricing.currency}
+                        {featuredPlan.data.pricing.regularPrice}
+                      </span>
+                      <span class="font-bold text-deal-500">
+                        省 {Math.round(
+                          (1 -
+                            featuredPlan.data.pricing.promoPrice /
+                              featuredPlan.data.pricing.regularPrice) *
+                            100,
+                        )}%
+                      </span>
+                    </p>
+                  </div>
+
+                  <ul class="mt-4 space-y-2">
+                    {featuredPlan.data.specs.slice(0, 4).map((s: any) => (
+                      <li class="flex items-baseline justify-between gap-2 text-[0.75rem]">
+                        <span class="text-soft">{s.label}</span>
+                        <span class="font-semibold text-strong">{s.value}</span>
+                      </li>
+                    ))}
+                  </ul>
+
+                  <div class="mt-5">
+                    <AffiliateButton
+                      category={featuredPlan.data.category}
+                      campaign={`article-${article.id}`}
+                      label="领取优惠"
+                      block
+                      size="md"
+                    />
+                  </div>
+
+                  <p class="mt-2.5 text-center text-[0.7rem] text-faint">
+                    {featuredPlan.data.moneyBackDays} 天无理由退款
+                  </p>
+                </div>
+              </div>
+            )
+          }
+
+          {/* 全部套餐入口 */}
+          <a
+            href="/pricing"
+            class="group flex items-center justify-between gap-3 rounded-xl border border-[var(--hairline)] bg-white p-4 transition-colors hover:border-brand-200"
+          >
+            <span>
+              <span class="block text-[0.875rem] font-semibold text-strong">查看全部套餐对比</span>
+              <span class="mt-0.5 block text-[0.7rem] text-soft">12 个在售套餐横向对比</span>
+            </span>
+            <Icon
+              name="arrowRight"
+              size={18}
+              class="shrink-0 text-brand-600 transition-transform group-hover:translate-x-0.5"
+            />
+          </a>
+
+          {/* 套餐选择器入口 */}
+          <a
+            href="/tools/plan-finder"
+            class="group flex items-center justify-between gap-3 rounded-xl border border-accent-200 bg-accent-50 p-4 transition-colors hover:border-accent-300"
+          >
+            <span>
+              <span class="block text-[0.875rem] font-semibold text-accent-800">还没决定选哪个？</span>
+              <span class="mt-0.5 block text-[0.7rem] text-accent-700">30 秒套餐选择器</span>
+            </span>
+            <Icon
+              name="target"
+              size={18}
+              class="shrink-0 text-accent-600 transition-transform group-hover:scale-110"
+            />
+          </a>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  {/* 长文底部悬浮转化卡（仅桌面端、移动超过 700px 后出现） */}
+  {featuredPlan && <DealBanner variant="sticky" plan={featuredPlan as any} />}
+</BaseLayout>

@@ -1,0 +1,39 @@
+# robots.txt — HostingerPick
+# https://hostingerpick.com
+
+User-agent: *
+Allow: /
+
+# 后台不参与索引
+Disallow: /admin/
+Disallow: /admin
+
+# 站内搜索结果页无收录价值，避免重复内容
+Disallow: /*?q=
+Disallow: /*?tag=
+
+# 构建产物与源文件不对外
+Disallow: /_astro/
+Disallow: /uploads/*.original.*
+
+# AI 抓取策略：允许摘要引用，保留品牌署名
+User-agent: GPTBot
+Allow: /
+Disallow: /admin/
+
+User-agent: ClaudeBot
+Allow: /
+Disallow: /admin/
+
+User-agent: PerplexityBot
+Allow: /
+Disallow: /admin/
+
+# 爬虫限速，保护源站
+User-agent: AhrefsBot
+Crawl-delay: 10
+
+User-agent: SemrushBot
+Crawl-delay: 10
+
+Sitemap: https://hostingerpick.com/sitemap-index.xml

@@ -1,0 +1,406 @@
+---
+/**
+ * ArticleArchive —— 文章列表页共用组件
+ * 支持：分类筛选、标签筛选、关键词搜索、分页
+ * 全部筛选在客户端完成（静态站点，文章总量在数百篇量级，客户端筛选体验更好）
+ */
+import ArticleCard from './ArticleCard.astro';
+import Icon from './Icon.astro';
+import { ARTICLE_CATEGORIES, articleUrl } from '../consts';
+
+interface Props {
+  articles: any[];
+  /** 页面标题与说明 */
+  title: string;
+  description: string;
+  /** 固定显示的分类（不传则显示全部） */
+  fixedCategory?: string;
+  /** 每页数量 */
+  perPage?: number;
+}
+
+const {
+  articles,
+  title,
+  description,
+  fixedCategory,
+  perPage = 9,
+} = Astro.props;
+
+/* ── 收集全部标签并统计频次 ── */
+const tagCounts = new Map<string, number>();
+for (const a of articles) {
+  for (const t of a.data.tags) {
+    tagCounts.set(t, (tagCounts.get(t) ?? 0) + 1);
+  }
+}
+const allTags = [...tagCounts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 20);
+
+const categories = fixedCategory
+  ? ARTICLE_CATEGORIES.filter((c) => c.slug === fixedCategory)
+  : ARTICLE_CATEGORIES.filter((c) => articles.some((a) => a.data.category === c.slug));
+
+const sorted = [...articles].sort((a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime());
+---
+
+<div class="container-page py-12 lg:py-16">
+  <div class="grid gap-10 lg:grid-cols-[280px_minmax(0,1fr)] xl:gap-12">
+    {/* ══════ 左侧筛选栏 ══════ */}
+    <aside class="lg:sticky lg:top-28 lg:self-start">
+      <div class="space-y-5">
+        {/* 搜索 */}
+        <div class="rounded-xl border border-[var(--hairline)] bg-white p-5">
+          <label for="article-search" class="text-[0.8125rem] font-bold uppercase tracking-wider text-strong">
+            <Icon name="search" size={14} class="mr-1.5 inline align-[-2px] text-brand-600" />
+            搜索文章
+          </label>
+          <div class="relative mt-3">
+            <input
+              type="search"
+              id="article-search"
+              placeholder="输入关键词…"
+              class="w-full rounded-lg border border-[var(--hairline)] bg-[var(--surface-muted)] py-2.5 pl-9 pr-3 text-[0.875rem] text-strong placeholder:text-ink-400 focus:border-brand-400 focus:bg-white focus:outline-none"
+            />
+            <Icon
+              name="search"
+              size={15}
+              class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-400"
+            />
+          </div>
+        </div>
+
+        {/* 分类 */}
+        {
+          !fixedCategory && (
+            <div class="rounded-xl border border-[var(--hairline)] bg-white p-5">
+              <h2 class="text-[0.8125rem] font-bold uppercase tracking-wider text-strong">
+                <Icon name="grid" size={14} class="mr-1.5 inline align-[-2px] text-brand-600" />
+                按分类筛选
+              </h2>
+              <div class="mt-3.5 space-y-1" data-filter-group="category">
+                <button
+                  type="button"
+                  data-filter-value="all"
+                  class="flex w-full items-center justify-between rounded-lg px-3 py-2 text-[0.8125rem] font-medium text-body transition-colors hover:bg-brand-50 aria-pressed:bg-brand-50 aria-pressed:text-brand-700 aria-pressed:font-semibold"
+                  aria-pressed="true"
+                >
+                  <span>全部文章</span>
+                  <span class="rounded bg-[var(--surface-muted)] px-1.5 py-0.5 text-[0.65rem] text-soft">
+                    {sorted.length}
+                  </span>
+                </button>
+                {categories.map((cat) => {
+                  const count = sorted.filter((a) => a.data.category === cat.slug).length;
+                  return (
+                    <button
+                      type="button"
+                      data-filter-value={cat.slug}
+                      class="flex w-full items-center justify-between rounded-lg px-3 py-2 text-[0.8125rem] font-medium text-body transition-colors hover:bg-brand-50 aria-pressed:bg-brand-50 aria-pressed:text-brand-700 aria-pressed:font-semibold"
+                      aria-pressed="false"
+                    >
+                      <span>{cat.label}</span>
+                      <span class="rounded bg-[var(--surface-muted)] px-1.5 py-0.5 text-[0.65rem] text-soft">
+                        {count}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )
+        }
+
+        {/* 标签云 */}
+        {
+          allTags.length > 0 && (
+            <div class="rounded-xl border border-[var(--hairline)] bg-white p-5">
+              <h2 class="text-[0.8125rem] font-bold uppercase tracking-wider text-strong">
+                <Icon name="tag" size={14} class="mr-1.5 inline align-[-2px] text-brand-600" />
+                按标签筛选
+              </h2>
+              <div class="mt-3.5 flex flex-wrap gap-1.5" data-filter-group="tag">
+                {allTags.map(([tag, count]) => (
+                  <button
+                    type="button"
+                    data-filter-value={tag}
+                    class="rounded-lg bg-[var(--surface-muted)] px-2.5 py-1.5 text-[0.7rem] font-medium text-soft transition-colors hover:bg-brand-50 hover:text-brand-700 aria-pressed:bg-brand-600 aria-pressed:text-white"
+                    aria-pressed="false"
+                  >
+                    {tag}
+                    <span class="ml-0.5 opacity-60">{count}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )
+        }
+
+        {/* 选择器入口 */}
+        <a
+          href="/tools/plan-finder"
+          class="group block overflow-hidden rounded-xl bg-gradient-to-br from-accent-600 to-accent-800 p-5 text-white"
+        >
+          <span class="flex h-9 w-9 items-center justify-center rounded-lg bg-white/20 backdrop-blur">
+            <Icon name="target" size={18} />
+          </span>
+          <h3 class="mt-3.5 text-[0.9375rem] font-bold">不确定选哪个套餐？</h3>
+          <p class="mt-1.5 text-[0.75rem] leading-relaxed text-accent-100">
+            30 秒得到针对性建议
+          </p>
+        </a>
+      </div>
+    </aside>
+
+    {/* ══════ 右侧列表 ══════ */}
+    <div class="min-w-0">
+      <div class="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h1 class="text-h2 font-extrabold">{title}</h1>
+          <p class="mt-2.5 max-w-2xl text-[0.9375rem] leading-relaxed text-soft">{description}</p>
+        </div>
+        <p class="text-[0.8125rem] text-soft">
+          共 <span class="font-bold text-strong" data-result-count>{sorted.length}</span> 篇
+        </p>
+      </div>
+
+      {/* 当前筛选条件（可清除） */}
+      <div
+        id="active-filters"
+        class="mt-5 hidden flex-wrap items-center gap-2 rounded-xl border border-brand-200 bg-brand-50 px-4 py-3"
+      >
+        <span class="text-[0.75rem] font-semibold text-brand-900">
+          <Icon name="filter" size={13} class="mr-1 inline align-[-2px]" />
+          当前筛选
+        </span>
+        <span id="active-filters-list" class="flex flex-wrap gap-2"></span>
+        <button
+          type="button"
+          id="clear-filters"
+          class="ml-auto text-[0.75rem] font-semibold text-brand-700 underline underline-offset-2"
+        >
+          清除全部
+        </button>
+      </div>
+
+      {/* 文章网格 */}
+      <div id="article-grid" class="mt-7 grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+        {
+          sorted.map((a) => (
+            <div
+              data-article
+              data-category={a.data.category}
+              data-tags={a.data.tags.join('|')}
+              data-title={(a.data.title + ' ' + a.data.description + ' ' + a.data.tags.join(' ')).toLowerCase()}
+            >
+              <ArticleCard article={a} href={articleUrl(a)} />
+            </div>
+          ))
+        }
+      </div>
+
+      {/* 空状态 */}
+      <div
+        id="empty-state"
+        class="mt-7 hidden rounded-2xl border border-dashed border-[var(--hairline)] bg-[var(--surface-muted)] py-16 text-center"
+      >
+        <span class="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-white text-ink-400">
+          <Icon name="search" size={24} />
+        </span>
+        <h2 class="mt-4 text-[1.0625rem] font-bold text-strong">没有匹配的文章</h2>
+        <p class="mt-2 text-[0.875rem] text-soft">试试调整关键词，或清除筛选条件。</p>
+        <button type="button" class="btn btn-outline mt-5" id="empty-clear">清除筛选</button>
+      </div>
+
+      {/* 分页 */}
+      <nav id="pagination" class="mt-10 flex items-center justify-center gap-2" aria-label="分页导航">
+      </nav>
+    </div>
+  </div>
+</div>
+
+<script define:vars={{ perPage }}>
+  const grid = document.getElementById('article-grid');
+  const cards = grid ? Array.from(grid.querySelectorAll('[data-article]')) : [];
+  const countEl = document.querySelector('[data-result-count]');
+  const emptyState = document.getElementById('empty-state');
+  const pagination = document.getElementById('pagination');
+  const activeBox = document.getElementById('active-filters');
+  const activeList = document.getElementById('active-filters-list');
+  const searchInput = document.getElementById('article-search');
+
+  const state = { category: 'all', tag: 'all', query: '', page: 1 };
+
+  /* 从 URL 读取初始筛选（支持 /blog?tag=xxx 这类深链） */
+  const params = new URLSearchParams(location.search);
+  if (params.get('tag')) state.tag = params.get('tag');
+  if (params.get('category')) state.category = params.get('category');
+  if (params.get('q')) {
+    state.query = params.get('q');
+    if (searchInput) searchInput.value = state.query;
+  }
+
+  const CATEGORY_LABELS = {
+    reviews: '主机评测',
+    tutorials: '建站教程',
+    deals: '优惠与选购',
+    comparison: '对比评测',
+    faq: '常见问题',
+  };
+
+  const matches = (card) => {
+    if (state.category !== 'all' && card.dataset.category !== state.category) return false;
+    if (state.tag !== 'all' && !(card.dataset.tags || '').split('|').includes(state.tag)) return false;
+    if (state.query && !(card.dataset.title || '').includes(state.query)) return false;
+    return true;
+  };
+
+  const render = () => {
+    const visible = cards.filter(matches);
+    const totalPages = Math.max(1, Math.ceil(visible.length / perPage));
+    if (state.page > totalPages) state.page = totalPages;
+
+    const start = (state.page - 1) * perPage;
+    const pageItems = new Set(visible.slice(start, start + perPage));
+
+    for (const card of cards) {
+      card.classList.toggle('hidden', !pageItems.has(card));
+    }
+
+    if (countEl) countEl.textContent = String(visible.length);
+    emptyState?.classList.toggle('hidden', visible.length > 0);
+
+    /* 筛选状态标签 */
+    const chips = [];
+    if (state.category !== 'all') chips.push(['category', CATEGORY_LABELS[state.category] ?? state.category]);
+    if (state.tag !== 'all') chips.push(['tag', '#' + state.tag]);
+    if (state.query) chips.push(['query', `"${state.query}"`]);
+
+    if (activeBox && activeList) {
+      activeBox.classList.toggle('hidden', chips.length === 0);
+      activeBox.classList.toggle('flex', chips.length > 0);
+      activeList.innerHTML = '';
+      for (const [kind, label] of chips) {
+        const chip = document.createElement('button');
+        chip.type = 'button';
+        chip.className =
+          'inline-flex items-center gap-1 rounded-full bg-white px-2.5 py-1 text-[0.7rem] font-semibold text-brand-700 shadow-sm';
+        chip.innerHTML = `${label}<span aria-hidden="true">&times;</span>`;
+        chip.addEventListener('click', () => {
+          if (kind === 'category') state.category = 'all';
+          if (kind === 'tag') state.tag = 'all';
+          if (kind === 'query') {
+            state.query = '';
+            if (searchInput) searchInput.value = '';
+          }
+          syncButtons();
+          state.page = 1;
+          render();
+        });
+        activeList.appendChild(chip);
+      }
+    }
+
+    /* 分页按钮 */
+    if (pagination) {
+      pagination.innerHTML = '';
+      if (totalPages <= 1) return;
+
+      const mkBtn = (label, page, opts = {}) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.innerHTML = label;
+        btn.disabled = opts.disabled === true;
+        btn.className = opts.active
+          ? 'flex h-9 min-w-9 items-center justify-center rounded-lg bg-brand-600 px-3 text-[0.8125rem] font-semibold text-white'
+          : 'flex h-9 min-w-9 items-center justify-center rounded-lg border border-[var(--hairline)] bg-white px-3 text-[0.8125rem] font-medium text-body transition-colors hover:border-brand-300 hover:text-brand-700 disabled:opacity-40 disabled:hover:border-[var(--hairline)] disabled:hover:text-body';
+        if (!opts.disabled) {
+          btn.addEventListener('click', () => {
+            state.page = page;
+            render();
+            grid?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          });
+        }
+        return btn;
+      };
+
+      pagination.appendChild(mkBtn('&larr; 上一页', state.page - 1, { disabled: state.page === 1 }));
+
+      /* 页码：当前页前后各 2 页 */
+      const pages = [];
+      for (let i = 1; i <= totalPages; i++) {
+        if (i === 1 || i === totalPages || Math.abs(i - state.page) <= 2) pages.push(i);
+      }
+      let last = 0;
+      for (const p of pages) {
+        if (last && p - last > 1) {
+          const gap = document.createElement('span');
+          gap.textContent = '…';
+          gap.className = 'px-1 text-[0.8125rem] text-faint';
+          pagination.appendChild(gap);
+        }
+        pagination.appendChild(mkBtn(String(p), p, { active: p === state.page }));
+        last = p;
+      }
+
+      pagination.appendChild(
+        mkBtn('下一页 &rarr;', state.page + 1, { disabled: state.page === totalPages })
+      );
+    }
+  };
+
+  const syncButtons = () => {
+    document.querySelectorAll('[data-filter-group]').forEach((group) => {
+      const kind = group.getAttribute('data-filter-group');
+      const active = kind === 'category' ? state.category : state.tag;
+      group.querySelectorAll('[data-filter-value]').forEach((btn) => {
+        btn.setAttribute('aria-pressed', String(btn.getAttribute('data-filter-value') === active));
+      });
+    });
+  };
+
+  /* 筛选按钮事件 */
+  document.querySelectorAll('[data-filter-group]').forEach((group) => {
+    const kind = group.getAttribute('data-filter-group');
+    group.addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-filter-value]');
+      if (!btn) return;
+      const value = btn.getAttribute('data-filter-value');
+      const current = kind === 'category' ? state.category : state.tag;
+      /* 再次点击已选项则取消筛选 */
+      const next = current === value && value !== 'all' ? 'all' : value;
+      if (kind === 'category') state.category = next;
+      else state.tag = next;
+      syncButtons();
+      state.page = 1;
+      render();
+    });
+  });
+
+  /* 搜索防抖 */
+  let timer;
+  searchInput?.addEventListener('input', (e) => {
+    clearTimeout(timer);
+    timer = setTimeout(() => {
+      state.query = e.target.value.trim().toLowerCase();
+      state.page = 1;
+      render();
+    }, 220);
+  });
+
+  document.getElementById('clear-filters')?.addEventListener('click', () => {
+    state.category = 'all';
+    state.tag = 'all';
+    state.query = '';
+    if (searchInput) searchInput.value = '';
+    syncButtons();
+    state.page = 1;
+    render();
+  });
+
+  document.getElementById('empty-clear')?.addEventListener('click', () => {
+    document.getElementById('clear-filters')?.click();
+  });
+
+  syncButtons();
+  render();
+</script>

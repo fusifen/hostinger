@@ -1,0 +1,55 @@
+---
+/**
+ * Breadcrumbs —— 面包屑导航（附带 BreadcrumbList 结构化数据）
+ */
+import Icon from './Icon.astro';
+import { SITE } from '../consts';
+
+interface Crumb {
+  label: string;
+  href?: string;
+}
+
+interface Props {
+  items: Crumb[];
+  class?: string;
+}
+
+const { items, class: className = '' } = Astro.props;
+
+const all: Crumb[] = [{ label: '首页', href: '/' }, ...items];
+
+const schema = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: all.map((item, i) => ({
+    '@type': 'ListItem',
+    position: i + 1,
+    name: item.label,
+    ...(item.href ? { item: new URL(item.href, SITE.url).toString() } : {}),
+  })),
+};
+---
+
+<nav aria-label="面包屑" class:list={['text-[0.8125rem]', className]}>
+  <ol class="flex flex-wrap items-center gap-x-1.5 gap-y-1">
+    {
+      all.map((item, i) => (
+        <li class="flex items-center gap-1.5">
+          {i > 0 && <Icon name="chevron-right" size={13} class="text-ink-300" />}
+          {item.href && i < all.length - 1 ? (
+            <a href={item.href} class="text-soft transition-colors hover:text-brand-700">
+              {item.label}
+            </a>
+          ) : (
+            <span class="font-medium text-strong" aria-current="page">
+              {item.label}
+            </span>
+          )}
+        </li>
+      ))
+    }
+  </ol>
+</nav>
+
+<script type="application/ld+json" set:html={JSON.stringify(schema)} />

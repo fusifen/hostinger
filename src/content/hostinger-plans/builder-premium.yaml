@@ -1,0 +1,72 @@
+name: Website Builder Premium
+fullName: Hostinger Website Builder Premium
+category: builder
+series: Builder
+order: 10
+tagline: 内置 AI 出稿，不会代码也能当天上线
+pricing:
+  promoPrice: 25
+  regularPrice: 88
+  renewalPrice: 88
+  termLabel: 48 个月
+  currency: ¥
+  upfrontTotal: 1200
+rating: 4.5
+reviewCount: 2140
+bestValue: true
+recommended: true
+audience:
+  - beginner
+  - business
+websites: '1'
+storage: 100 GB NVMe SSD
+bandwidth: 不限量
+specs:
+  - label: AI 生成器
+    value: 内置（描述业务即出稿）
+  - label: 页面上限
+    value: 100 页
+  - label: 存储
+    value: 100 GB NVMe
+  - label: 带宽
+    value: 不限量
+  - label: 拖拽编辑器
+    value: 可视化 + 手机端预览
+  - label: 表单与预约
+    value: 内置
+  - label: 可托管网站
+    value: 1 个
+features:
+  - label: AI 一键生成整站
+    included: true
+  - label: 免费 SSL 证书
+    included: true
+  - label: 免费域名（1 年）
+    included: true
+  - label: 拖拽式可视化编辑
+    included: true
+  - label: 内置营销表单与预约
+    included: true
+  - label: 电商功能
+    included: false
+    note: Business 版才开放
+  - label: 每日自动备份
+    included: false
+  - label: 自定义域名绑定
+    included: true
+discountBadge: 省 72%
+freebies:
+  - 赠送 1 年 .com 域名
+  - AI 建站生成器
+  - 免费 SSL
+moneyBackDays: 30
+affiliate:
+  campaign: builder-premium
+verdict: 它的价值不在于省事，而在于把「先有网站」这件事的门槛降到了零。输入行业和几个关键词，AI 会生成完整结构的初稿，你只需要改文案。对没有技术背景的小生意业主来说，这是最快拿到一个能看能用的官网的方式。
+bestFor: 完全没有技术背景的个体户、工作室、需要快速上线展示站的小生意
+caveat: 编辑器是闭环的，导不出代码 —— 后期想深度定制或迁移到 WordPress 需要重建。如果你有长期运营打算，建议直接上 Premium 共享主机 + WordPress。
+relatedReviews:
+  - hostinger-website-builder-review
+  - build-wordpress-site-on-hostinger
+active: true
+lastChecked: 2026-09-10

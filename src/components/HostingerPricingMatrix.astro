@@ -1,0 +1,243 @@
+---
+/**
+ * HostingerPricingMatrix —— 套餐价格矩阵 / 对比表格
+ *
+ * 两种模式：
+ *   grid  —— 价格卡片网格，首页与定价页概览使用（转化导向）
+ *   table —— 逐项对比表格，深度决策使用（信息导向）
+ *
+ * 支持按产品大类筛选，也支持传入已筛选的套餐集合。
+ */
+import Icon from './Icon.astro';
+import PlanCard from './PlanCard.astro';
+import AffiliateButton from './AffiliateButton.astro';
+import { PRODUCT_CATEGORIES, AFFILIATE } from '../consts';
+
+interface Props {
+  plans: any[];
+  /** 展示模式 */
+  mode?: 'grid' | 'table';
+  /** 按大类分组展示（定价页使用） */
+  groupByCategory?: boolean;
+  /** 仅展示某个大类 */
+  onlyCategory?: string;
+  /** 表格模式下要对比的规格行 */
+  class?: string;
+}
+
+const { plans, mode = 'grid', groupByCategory = false, onlyCategory, class: className = '' } = Astro.props;
+
+const saved = (plan: any) => Math.round((1 - plan.data.pricing.promoPrice / plan.data.pricing.regularPrice) * 100);
+const couponOf = (plan: any) => plan.data.affiliate.couponCode ?? AFFILIATE.couponCode;
+
+/* ── 表格模式下统一采集所有规格行，保证行对齐 ── */
+const specRows = (() => {
+  if (mode !== 'table') return [];
+  const labels: string[] = [];
+  for (const plan of plans) {
+    for (const s of plan.data.specs) {
+      if (!labels.includes(s.label)) labels.push(s.label);
+    }
+  }
+  return labels.map((label) => ({
+    label,
+    values: plans.map((plan: any) => plan.data.specs.find((s: any) => s.label === label)?.value ?? '—'),
+  }));
+})();
+
+const featureRows = (() => {
+  if (mode !== 'table') return [];
+  const labels: string[] = [];
+  for (const plan of plans) {
+    for (const f of plan.data.features) {
+      if (!labels.includes(f.label)) labels.push(f.label);
+    }
+  }
+  return labels.map((label) => ({
+    label,
+    values: plans.map((plan: any) => {
+      const f = plan.data.features.find((x: any) => x.label === label);
+      return f ? f.included : null;
+    }),
+  }));
+})();
+
+/* ── 分组逻辑 ── */
+const groups = groupByCategory
+  ? PRODUCT_CATEGORIES.map((cat) => ({
+      cat,
+      items: plans.filter((p) => p.data.category === cat.slug),
+    })).filter((g) => g.items.length > 0)
+  : [{ cat: null, items: plans }];
+
+const filtered = onlyCategory ? groups.filter((g) => g.cat?.slug === onlyCategory) : groups;
+---
+
+{mode === 'grid' && (
+  <div class:list={['space-y-16', className]}>
+    {filtered.map((group) => (
+      <div>
+        {group.cat && (
+          <div class="mb-6 flex flex-wrap items-end justify-between gap-4">
+            <div>
+              <div class="flex items-center gap-2.5">
+                <span class="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-100 text-brand-700">
+                  <Icon name={group.cat.icon} size={18} />
+                </span>
+                <h3 class="text-h3 font-bold" id={group.cat.slug}>{group.cat.label}</h3>
+                <span class="badge badge-neutral">{group.cat.tagline}</span>
+              </div>
+              <p class="mt-2 max-w-2xl text-sm leading-relaxed text-soft">{group.cat.description}</p>
+            </div>
+            <span class="badge badge-accent">
+              <Icon name="zap" size={13} />
+              {group.cat.highlight}
+            </span>
+          </div>
+        )}
+
+        <div
+          class:list={[
+            'grid gap-6',
+            group.items.length >= 3
+              ? 'md:grid-cols-2 lg:grid-cols-3'
+              : group.items.length === 2
+                ? 'md:grid-cols-2 max-w-3xl'
+                : 'max-w-md',
+            group.items.some((p: any) => p.data.bestValue) && 'pt-4',
+          ]}
+        >
+          {group.items.map((plan: any) => <PlanCard plan={plan} />)}
+        </div>
+      </div>
+    ))}
+  </div>
+)}
+
+{mode === 'table' && (
+  <div class:list={['overflow-hidden rounded-2xl border border-[var(--hairline)] bg-white shadow-soft', className]}>
+    <div class="overflow-x-auto">
+      <table class="matrix-table min-w-[860px]">
+        <caption class="sr-only">Hostinger 各套餐详细配置与价格对比</caption>
+
+        <thead>
+          <tr>
+            <th scope="col" class="w-48 sticky left-0 z-10 !bg-[var(--surface-muted)]">对比项目</th>
+            {plans.map((plan: any) => (
+              <th scope="col" class:list={['min-w-[190px]', plan.data.bestValue && '!bg-brand-50']}>
+                <div class="flex flex-col gap-1">
+                  <div class="flex items-center gap-2">
+                    <span class="text-base font-bold text-strong">{plan.data.name}</span>
+                    {plan.data.bestValue && <span class="badge badge-brand">最超值</span>}
+                  </div>
+                  <span class="text-[0.7rem] font-normal text-faint">{plan.data.series} 系列</span>
+                </div>
+              </th>
+            ))}
+          </tr>
+        </thead>
+
+        <tbody>
+          {/* 价格区 */}
+          <tr class="!bg-brand-50/50">
+            <th scope="row" class="sticky left-0 z-10 !bg-brand-50/50 font-semibold">促销价（月均）</th>
+            {plans.map((plan: any) => (
+              <td class:list={[plan.data.bestValue && '!bg-brand-50/80']}>
+                <div class="flex items-baseline gap-1">
+                  <span class="price-now text-lg">{plan.data.pricing.currency}{plan.data.pricing.promoPrice}</span>
+                  <span class="text-xs text-soft">/月</span>
+                </div>
+                <div class="mt-0.5 flex items-center gap-1.5">
+                  <span class="price-was text-[0.7rem]">{plan.data.pricing.currency}{plan.data.pricing.regularPrice}</span>
+                  <span class="text-[0.7rem] font-semibold text-deal-500">−{saved(plan)}%</span>
+                </div>
+              </td>
+            ))}
+          </tr>
+
+          <tr>
+            <th scope="row" class="sticky left-0 z-10 !bg-white font-semibold">续费价（月均）</th>
+            {plans.map((plan: any) => (
+              <td class:list={[plan.data.bestValue && '!bg-brand-50/80']}>
+                <span class="font-semibold text-strong tabular-nums">
+                  {plan.data.pricing.currency}{plan.data.pricing.renewalPrice}
+                </span>
+                <span class="ml-1 text-[0.7rem] text-faint">/月</span>
+              </td>
+            ))}
+          </tr>
+
+          <tr>
+            <th scope="row" class="sticky left-0 z-10 !bg-white font-semibold">付款时长</th>
+            {plans.map((plan: any) => (
+              <td class:list={[plan.data.bestValue && '!bg-brand-50/80']}>
+                {plan.data.pricing.termLabel}
+              </td>
+            ))}
+          </tr>
+
+          <tr>
+            <th scope="row" class="sticky left-0 z-10 !bg-white font-semibold">评分</th>
+            {plans.map((plan: any) => (
+              <td class:list={[plan.data.bestValue && '!bg-brand-50/80']}>
+                <span class="inline-flex items-center gap-1">
+                  <Icon name="star" size={13} class="text-gold-500" />
+                  <span class="font-semibold">{plan.data.rating.toFixed(1)}</span>
+                </span>
+              </td>
+            ))}
+          </tr>
+
+          {/* 规格区 */}
+          {specRows.map((row) => (
+            <tr>
+              <th scope="row" class="sticky left-0 z-10 !bg-white font-medium text-soft">{row.label}</th>
+              {row.values.map((v, i) => (
+                <td class:list={[plans[i].data.bestValue && '!bg-brand-50/80', 'font-medium text-strong']}>{v}</td>
+              ))}
+            </tr>
+          ))}
+
+          {/* 权益区 */}
+          {featureRows.map((row) => (
+            <tr>
+              <th scope="row" class="sticky left-0 z-10 !bg-white font-medium text-soft">{row.label}</th>
+              {row.values.map((v, i) => (
+                <td class:list={[plans[i].data.bestValue && '!bg-brand-50/80']}>
+                  {v === null ? (
+                    <span class="text-ink-300">—</span>
+                  ) : (
+                    <Icon
+                      name={v ? 'check-circle' : 'x-circle'}
+                      size={16}
+                      class={v ? 'text-accent-500' : 'text-ink-300'}
+                    />
+                  )}
+                </td>
+              ))}
+            </tr>
+          ))}
+
+          {/* 转化行 */}
+          <tr class="!border-0">
+            <th scope="row" class="sticky left-0 z-10 !bg-white"></th>
+            {plans.map((plan: any) => (
+              <td class:list={['!border-0 pt-4', plan.data.bestValue && '!bg-brand-50/80']}>
+                <AffiliateButton
+                  category={plan.data.category}
+                  campaign={plan.data.affiliate.campaign}
+                  coupon={couponOf(plan)}
+                  label="领取优惠"
+                  size="sm"
+                  variant={plan.data.bestValue ? 'primary' : 'outline'}
+                  block
+                  showCoupon={false}
+                />
+              </td>
+            ))}
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+)}

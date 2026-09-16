@@ -1,0 +1,74 @@
+name: Cloud Professional
+fullName: Hostinger Cloud Professional
+category: cloud
+series: Cloud
+order: 20
+tagline: 分布式资源池，全年流量高峰的保险
+pricing:
+  promoPrice: 105
+  regularPrice: 340
+  renewalPrice: 340
+  termLabel: 48 个月
+  currency: ¥
+  upfrontTotal: 5040
+rating: 4.7
+reviewCount: 780
+bestValue: false
+recommended: false
+audience:
+  - ecommerce
+  - high-traffic
+  - agency
+websites: '300'
+storage: 250 GB NVMe SSD
+bandwidth: 不限量
+specs:
+  - label: CPU 核心
+    value: 4 核（专属）
+  - label: 内存
+    value: 6 GB（专属）
+  - label: 存储
+    value: 250 GB NVMe
+  - label: 带宽
+    value: 不限量
+  - label: 资源隔离
+    value: 分布式资源池
+  - label: IP 地址
+    value: 专属 IP
+  - label: 可托管网站
+    value: 300 个
+features:
+  - label: 分布式资源池
+    included: true
+    note: 单节点故障自动切换
+  - label: 自动流量扩容
+    included: true
+  - label: 免费 SSL 证书
+    included: true
+  - label: 免费域名（1 年）
+    included: true
+  - label: 每日自动备份
+    included: true
+  - label: 免费网站迁移
+    included: true
+  - label: 内置 Cloudflare CDN
+    included: true
+  - label: 优先支持通道
+    included: true
+discountBadge: 省 69%
+freebies:
+  - 赠送 1 年 .com 域名
+  - 专属 IP 地址
+  - 分布式资源池 + 自动故障切换
+  - 免费网站迁移
+moneyBackDays: 30
+affiliate:
+  campaign: cloud-professional
+verdict: 分布式资源池带来的是「单点故障不会让你掉线」这层保障，加上 4 核 6GB 专属资源，适合把网站当作主要销售渠道的业务。300 个网站额度对代理商来说也终于够用了。
+bestFor: 电商主站、代理商批量交付、无法承受哪怕几分钟宕机的业务
+caveat: 如果你只是个人博客或展示站，这档配置严重超配 —— Premium 或 Cloud Startup 就已经足够，省下的钱足够买好几年域名。
+relatedReviews:
+  - hostinger-vps-vs-cloud
+  - hostinger-review-2026
+active: true
+lastChecked: 2026-09-10

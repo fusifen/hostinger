@@ -1,0 +1,73 @@
+name: KVM 4
+fullName: Hostinger VPS KVM 4
+category: vps
+series: KVM
+order: 30
+tagline: 中型业务的生产环境标准配置
+pricing:
+  promoPrice: 78
+  regularPrice: 194
+  renewalPrice: 194
+  termLabel: 24 个月
+  currency: ¥
+  upfrontTotal: 1872
+rating: 4.7
+reviewCount: 1580
+bestValue: false
+recommended: true
+audience:
+  - business
+  - ecommerce
+  - developer
+websites: 不限
+storage: 200 GB NVMe SSD
+bandwidth: 16 TB / 月
+specs:
+  - label: vCPU
+    value: 4 核
+  - label: 内存
+    value: 16 GB
+  - label: 存储
+    value: 200 GB NVMe
+  - label: 月流量
+    value: 16 TB
+  - label: 独立 IPv4
+    value: 1 个
+  - label: 管理面板
+    value: hPanel + 完整 root
+  - label: 可托管网站
+    value: 不限
+features:
+  - label: 完整 root 权限
+    included: true
+  - label: 独立 IP 地址
+    included: true
+  - label: 每日自动备份
+    included: true
+  - label: 24/7 在线客服
+    included: true
+  - label: AI 建站助手
+    included: false
+  - label: 免费网站迁移
+    included: true
+  - label: 一键装 CyberPanel
+    included: true
+  - label: 16 TB 大带宽
+    included: true
+discountBadge: 省 60%
+freebies:
+  - 1 个独立 IPv4
+  - 完整 root 权限
+  - 每日快照备份
+  - 免费网站迁移
+moneyBackDays: 30
+affiliate:
+  campaign: vps-kvm4
+verdict: 从这一档开始，备份策略升级为每日，同时开放免费迁移。4 核 16GB 是跑自建数据库、缓存层与应用服务共存的分水岭 —— 你终于不用为了省内存而在架构上妥协了。
+bestFor: 有稳定收入的中型站点、需要跑数据库与队列服务的生产环境
+caveat: 16TB 流量对绝大多数业务都是过剩的，如果你的瓶颈是 CPU 而非带宽，可以对比同价位的 Cloud Startup 看哪个更贴合。
+relatedReviews:
+  - hostinger-vps-review
+  - hostinger-vps-vs-cloud
+active: true
+lastChecked: 2026-09-10

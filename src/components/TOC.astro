@@ -1,0 +1,88 @@
+---
+/**
+ * TOC —— 文章目录侧边栏
+ * 从渲染后的 HTML 中提取 h2 / h3 自动生成，带滚动高亮。
+ */
+import Icon from './Icon.astro';
+
+interface Heading {
+  depth: number;
+  slug: string;
+  text: string;
+}
+
+interface Props {
+  headings: Heading[];
+  class?: string;
+}
+
+const { headings, class: className = '' } = Astro.props;
+
+// 只保留 h2 / h3，过深的层级会让目录变得冗长
+const filtered = headings.filter((h) => h.depth >= 2 && h.depth <= 3);
+---
+
+{
+  filtered.length >= 3 && (
+    <nav aria-label="文章目录" class:list={['', className]}>
+      <div class="rounded-xl border border-[var(--hairline)] bg-white p-5">
+        <h2 class="flex items-center gap-2 text-[0.8125rem] font-bold uppercase tracking-wider text-strong">
+          <Icon name="list" size={15} class="text-brand-600" />
+          本文目录
+        </h2>
+        <ul class="mt-3.5 space-y-0.5 text-[0.8125rem]" id="toc-list">
+          {filtered.map((h) => (
+            <li>
+              <a
+                href={`#${h.slug}`}
+                data-toc-link
+                data-toc-id={h.slug}
+                class:list={[
+                  'block rounded-md py-1.5 leading-snug text-soft transition-colors duration-150 hover:text-brand-700',
+                  h.depth === 3 ? 'pl-6 text-[0.75rem]' : 'pl-2.5 font-medium',
+                ]}
+              >
+                {h.text}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </nav>
+  )
+}
+
+<script>
+  // 滚动时高亮当前所在的目录项
+  const links = Array.from(document.querySelectorAll<HTMLAnchorElement>('[data-toc-link]'));
+  if (links.length > 0) {
+    const targets = links
+      .map((link) => {
+        const id = link.dataset.tocId;
+        const el = id ? document.getElementById(id) : null;
+        return el ? { link, el } : null;
+      })
+      .filter(Boolean) as { link: HTMLAnchorElement; el: HTMLElement }[];
+
+    const setActive = (activeId: string | null) => {
+      for (const { link } of targets) {
+        const on = link.dataset.tocId === activeId;
+        link.classList.toggle('!bg-brand-50', on);
+        link.classList.toggle('!text-brand-700', on);
+        link.classList.toggle('!font-semibold', on);
+      }
+    };
+
+    const onScroll = () => {
+      let current: string | null = null;
+      for (const { el } of targets) {
+        if (el.getBoundingClientRect().top <= 120) current = el.id;
+        else break;
+      }
+      setActive(current ?? targets[0]?.link.dataset.tocId ?? null);
+    };
+
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+  }
+</script>

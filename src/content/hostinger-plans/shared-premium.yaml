@@ -1,0 +1,73 @@
+name: Premium
+fullName: Hostinger Premium 共享主机
+category: shared
+series: Shared
+order: 20
+tagline: 全站最超值的一档，新手建站的标准答案
+pricing:
+  promoPrice: 22
+  regularPrice: 89
+  renewalPrice: 89
+  termLabel: 48 个月
+  currency: ¥
+  upfrontTotal: 1056
+rating: 4.8
+reviewCount: 6210
+bestValue: true
+recommended: true
+audience:
+  - beginner
+  - blogger
+  - business
+websites: '25'
+storage: 100 GB NVMe SSD
+bandwidth: 不限量
+specs:
+  - label: CPU 核心
+    value: 1 核
+  - label: 内存
+    value: 1 GB
+  - label: 存储
+    value: 100 GB NVMe
+  - label: 带宽
+    value: 不限量
+  - label: MySQL 数据库
+    value: 50 个
+  - label: 邮箱账户
+    value: 不限量（免费 1 年）
+  - label: 可托管网站
+    value: 25 个
+features:
+  - label: 免费 SSL 证书
+    included: true
+  - label: 免费域名（1 年）
+    included: true
+  - label: 每周自动备份
+    included: true
+  - label: 24/7 在线客服
+    included: true
+  - label: 内置 AI 建站工具
+    included: true
+  - label: 免费网站迁移
+    included: true
+  - label: 优先支持通道
+    included: false
+  - label: CDN 加速
+    included: false
+discountBadge: 省 75%
+freebies:
+  - 赠送 1 年 .com 域名
+  - 不限量商务邮箱（1 年）
+  - 免费网站迁移
+moneyBackDays: 30
+affiliate:
+  campaign: shared-premium
+verdict: 只比 Single 贵 7 元/月，却把网站数量从 1 个提到 25 个、流量从 100GB 提到不限量，还附赠一年免费域名。这是整条产品线里性价比断层最明显的一档，90% 的新手应该直接从这里开始。
+bestFor: 同时运营多个网站的个人站长、需要给客户建展示站的外贸从业者
+caveat: 共享主机的 CPU 是整台服务器共享的，日 PV 超过 3 万后建议升级到 Cloud 或 VPS。
+relatedReviews:
+  - hostinger-shared-hosting-review
+  - hostinger-review-2026
+  - how-to-get-cheapest-hostinger
+active: true
+lastChecked: 2026-09-10

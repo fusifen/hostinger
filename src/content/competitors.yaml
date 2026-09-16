@@ -1,0 +1,75 @@
+- id: siteground
+  name: SiteGround
+  startingPrice: 24
+  rating: 4.5
+  pros:
+    - 官方 WordPress 支持响应快，工单平均 10 分钟内回复
+    - 自研 SG Optimizer 插件与缓存层整合度高
+    - 稳定性极佳，实测 12 个月无一次非计划宕机
+  cons:
+    - 入门套餐仅 10GB 存储，很快需要升级
+    - 续费价涨幅明显，第二年成本翻倍
+    - 网站数量与访客数限制较严
+  verdict: SiteGround 在纯托管体验上略胜，尤其是工单响应速度；但同样价格下 Hostinger 给的存储、网站数量和赠送域名更实在。预算充足且极度看重官方支持时选 SiteGround，否则 Hostinger 的性价比优势更明显。
+  betterFor: 愿意为 24 小时内的技术支持多付一倍费用的商业站点
+
+- id: bluehost
+  name: Bluehost
+  startingPrice: 21
+  rating: 4.1
+  pros:
+    - WordPress.org 官方推荐的主机商
+    - 后台与 WordPress 首次安装流程高度集成
+    - 美国节点对北美访客延迟表现好
+  cons:
+    - 低价档位附加项推销较多，结账流程冗长
+    - 亚洲节点缺失，国内访问速度一般
+    - 入门套餐存储额度偏小
+  verdict: Bluehost 的优势集中在北美市场与 WordPress 生态整合。如果你的目标访客主要在亚洲，Hostinger 在新加坡和孟买都有节点，实测延迟优势明显。
+  betterFor: 访客以北美为主的英文 WordPress 站点
+
+- id: cloudways
+  name: Cloudways
+  startingPrice: 78
+  rating: 4.6
+  pros:
+    - 云主机托管模式，可选 DigitalOcean、Vultr 等多云底层
+    - 自带高级缓存栈（Varnish + Redis + Memcached）
+    - 按小时计费，弹性好
+  cons:
+    - 需要一定服务器知识，无 cPanel 类图形面板
+    - 起步价是 Hostinger 共享主机的三倍以上
+    - 不含邮箱服务，需另外配置
+  verdict: Cloudways 面向的是已经懂服务器、要精细控制缓存栈的用户。Hostinger 的 Cloud Hosting 用更低价格提供了图形化面板与自动扩容，对不打算自己调 Nginx 配置的人来说更省心。
+  betterFor: 有运维能力、需要多云选择与精细化缓存控制的性能团队
+
+- id: godaddy
+  name: GoDaddy
+  startingPrice: 30
+  rating: 3.9
+  pros:
+    - 域名注册体量全球第一，域名管理生态完整
+    - 电话客服覆盖广，适合不习惯在线工单的用户
+    - 线下与本地化服务较成熟
+  cons:
+    - 续费价格偏高，且低价套餐功能限制多
+    - 后台界面复杂，新手容易误购附加服务
+    - 实测 TTFB 在同类中偏慢
+  verdict: GoDaddy 的品牌认知度高，但把域名和主机分开选通常更省钱。同样的预算下，Hostinger 的配置规格普遍高一到两档，且赠送域名与邮箱。
+  betterFor: 已经持有大量 GoDaddy 域名、希望统一管理账户的用户
+
+- id: hostinger
+  name: Hostinger
+  startingPrice: 15
+  rating: 4.7
+  pros:
+    - 同等配置下价格最低，48 个月付月均可低至 15 元
+    - 内置 AI 建站工具与 hPanel 面板，新手友好度高
+    - 亚洲节点（新加坡、孟买）对国内访问友好
+    - 赠送 1 年域名与商务邮箱，无额外附加费
+  cons:
+    - 低价档位需长期付款（48 个月）才成立
+    - 续费价高于首购价，需提前规划
+    - 共享主机 CPU 为共享资源，峰谷明显
+  verdict: 在入门到中端价位段，Hostinger 把「配置除以价格」这个比值做到了同类最低。它真正的取舍在于要求你接受较长的付款周期来换取低价，以及理解续费价会回到标准档。
+  betterFor: 预算敏感的新手站长、需要批量托管多个站点的小型代理商

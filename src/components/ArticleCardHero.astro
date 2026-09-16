@@ -1,0 +1,127 @@
+---
+/**
+ * ArticleCardHero —— 首屏精选横向大卡
+ * 从 ArticleCard 拆出：Astro 的 frontmatter 不支持 JSX 早返回。
+ */
+import Icon from './Icon.astro';
+import { getCategory } from '../consts';
+
+interface Props {
+  href: string;
+  title: string;
+  excerpt: string;
+  dateStr: string;
+  readTime: number;
+  author: string;
+  category: string;
+  theme: string;
+  featured: boolean;
+  class?: string;
+}
+
+const {
+  href,
+  title,
+  excerpt,
+  dateStr,
+  readTime,
+  author,
+  category,
+  theme,
+  featured,
+  class: className = '',
+} = Astro.props;
+
+const cat = getCategory(category);
+
+const themeGradient: Record<string, string> = {
+  'gradient-1': 'from-brand-600 via-brand-500 to-accent-500',
+  'gradient-2': 'from-brand-700 via-brand-500 to-brand-300',
+  'gradient-3': 'from-accent-600 via-accent-500 to-brand-500',
+  'gradient-4': 'from-brand-800 via-brand-600 to-accent-400',
+  'gradient-5': 'from-ink-800 via-brand-700 to-brand-500',
+  'gradient-6': 'from-accent-700 via-brand-600 to-brand-400',
+};
+
+const gradient = themeGradient[theme] ?? themeGradient['gradient-1'];
+
+const accentClass: Record<string, string> = {
+  violet: 'badge-brand',
+  sky: 'badge-neutral',
+  amber: 'badge-gold',
+  emerald: 'badge-accent',
+  rose: 'badge-deal',
+};
+---
+
+<a
+  href={href}
+  class:list={[
+    'group relative flex flex-col overflow-hidden rounded-2xl border border-[var(--hairline)] bg-white shadow-[var(--shadow-soft)] transition-all duration-300 hover:border-brand-200 hover:shadow-[var(--shadow-lift)] lg:flex-row',
+    className,
+  ]}
+>
+  <div
+    class:list={[
+      'relative flex min-h-[200px] items-center justify-center bg-gradient-to-br p-8 lg:w-[42%]',
+      gradient,
+    ]}
+  >
+    <div class="bg-grid absolute inset-0 opacity-20"></div>
+    <div class="relative text-center">
+      <span class="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-white/20 text-white backdrop-blur">
+        <Icon name={category === 'reviews' ? 'award' : 'book'} size={30} strokeWidth={1.6} />
+      </span>
+      <p class="mt-4 text-[0.7rem] font-bold uppercase tracking-[0.2em] text-white/80">
+        {cat?.label ?? '精选'}
+      </p>
+    </div>
+  </div>
+
+  <div class="flex flex-1 flex-col justify-center p-7">
+    <div class="flex flex-wrap items-center gap-2">
+      <span class:list={['badge', accentClass[cat?.color ?? 'violet']]}>{cat?.label}</span>
+      {
+        featured && (
+          <span class="badge badge-gold">
+            <Icon name="award" size={12} />
+            编辑精选
+          </span>
+        )
+      }
+    </div>
+
+    <h3
+      class="text-h3 mt-3.5 font-bold leading-snug text-[var(--text-strong)] transition-colors group-hover:text-brand-700"
+    >
+      {title}
+    </h3>
+
+    <p class="mt-2.5 line-clamp-3 text-[0.9375rem] leading-relaxed text-[var(--text-soft)]">
+      {excerpt}
+    </p>
+
+    <div class="mt-5 flex flex-wrap items-center gap-x-4 gap-y-2 text-[0.75rem] text-[var(--text-faint)]">
+      <span class="inline-flex items-center gap-1.5">
+        <Icon name="users" size={13} />
+        {author}
+      </span>
+      <span class="inline-flex items-center gap-1.5">
+        <Icon name="calendar" size={13} />
+        {dateStr}
+      </span>
+      <span class="inline-flex items-center gap-1.5">
+        <Icon name="clock" size={13} />
+        {readTime} 分钟阅读
+      </span>
+      <span class="ml-auto inline-flex items-center gap-1 font-semibold text-brand-600">
+        阅读全文
+        <Icon
+          name="arrowRight"
+          size={14}
+          class="transition-transform group-hover:translate-x-0.5"
+        />
+      </span>
+    </div>
+  </div>
+</a>

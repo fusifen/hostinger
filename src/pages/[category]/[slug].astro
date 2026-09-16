@@ -1,0 +1,46 @@
+---
+/**
+ * 文章详情页路由
+ * 五个分类共用这个模板：评测 / 教程 / 优惠 → 各自前缀目录，
+ * comparison 与 faq 统一归入 /blog。
+ *
+ * 注意：getStaticPaths 会被抽成独立的 prerender chunk，
+ *       其中引用的模块级常量可能不在作用域内，因此映射表写在函数内部。
+ */
+import type { GetStaticPaths } from 'astro';
+import { getCollection, render } from 'astro:content';
+import ArticleLayout from '../../layouts/ArticleLayout.astro';
+
+export const getStaticPaths = (async () => {
+  /** 分类 → 路由前缀 */
+  const CATEGORY_PREFIX: Record<string, string> = {
+    reviews: 'reviews',
+    tutorials: 'tutorials',
+    deals: 'deals',
+    faq: 'blog',
+    comparison: 'blog',
+  };
+
+  const articles = await getCollection('articles', ({ data }) => !data.draft);
+
+  return articles.map((article) => {
+    // article.id 形如 "reviews/hostinger-review-2026"，取最后一段作为 slug
+    const bare = article.id.split('/').pop() ?? article.id;
+
+    return {
+      params: {
+        category: CATEGORY_PREFIX[article.data.category] ?? 'blog',
+        slug: bare,
+      },
+      props: { article },
+    };
+  });
+}) satisfies GetStaticPaths;
+
+const { article } = Astro.props;
+const { Content, headings } = await render(article);
+---
+
+<ArticleLayout article={article} headings={headings}>
+  <Content />
+</ArticleLayout>

@@ -1,0 +1,77 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ArticleArchive from '../../components/ArticleArchive.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import FAQ from '../../components/FAQ.astro';
+import Icon from '../../components/Icon.astro';
+
+
+const articles = await getCollection(
+  'articles',
+  ({ data }) => !data.draft && data.category === 'reviews',
+);
+
+
+const faqs = [
+  {
+    question: '这些评测的数据是怎么来的？',
+    answer:
+      '全部来自自费购买的真实账户。我们自建监测脚本，从 12 个全球节点每 5 分钟采样一次，连续记录 90 天，收集 TTFB、在线率与峰值表现。压测使用 k6、fio 与 sysbench，具体参数都在文章中公布。',
+  },
+  {
+    question: '评测会受联盟佣金影响吗？',
+    answer:
+      '不会。我们通过 Hostinger 联盟计划获取佣金，但不接受厂商付费改稿，且产品的短板会如实披露（例如续费涨幅、共享主机的邻居效应、动态性能天花板）。你可以在每篇文章中看到我们主动指出的问题。',
+  },
+  {
+    question: '多久更新一次评测？',
+    answer:
+      '价格与配置每个季度核验一次，页面标注核验日期。性能数据在重大版本更新后会重新测试（如新的 PHP 版本、缓存机制变更）。长期监测数据持续在跑，出现异常会更新到文章中。',
+  },
+];
+---
+
+<BaseLayout
+  title="Hostinger 主机评测 — 基于 90 天真实监测数据"
+  description={`${articles.length} 篇 Hostinger 深度评测。全部基于自费购买的账户与可复核的监测数据，覆盖共享主机、VPS、Cloud Hosting 与 Website Builder。`}
+  keywords={['Hostinger评测', 'Hostinger怎么样', 'Hostinger值得买吗', '主机评测']}
+>
+  <div class="border-b border-[var(--hairline)] bg-[var(--surface-muted)]">
+    <div class="container-page py-4">
+      <Breadcrumbs items={[{ label: '主机评测' }]} />
+    </div>
+  </div>
+
+  <section class="relative overflow-hidden border-b border-[var(--hairline)]">
+    <div class="bg-radial-brand pointer-events-none absolute inset-0"></div>
+    <div class="container-page relative py-12 lg:py-14">
+      <div class="max-w-3xl">
+        <span class="eyebrow">
+          <Icon name="award" size={14} />
+          真实数据 · 自费购买
+        </span>
+        <h1 class="mt-3.5 text-h1 font-extrabold">Hostinger 主机评测</h1>
+        <p class="mt-5 text-[1.0625rem] leading-relaxed text-soft">
+          我们买下每一个套餐，在自己的账户上跑真实站点，用自建脚本从 12 个全球节点连续监测 90 天。
+          这里没有厂商提供的测试账号，也没有被审阅过的结论。
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <ArticleArchive
+    articles={articles}
+    title="全部评测"
+    description="按分类或标签筛选，找到你关心的那款产品。"
+    fixedCategory="reviews"
+  />
+
+  <section class="border-t border-[var(--hairline)] bg-[var(--surface-muted)] py-14">
+    <div class="container-page">
+      <div class="mx-auto max-w-3xl">
+        <FAQ faqs={faqs} title="关于本站评测的说明" emitSchema />
+      </div>
+    </div>
+  </section>
+</BaseLayout>

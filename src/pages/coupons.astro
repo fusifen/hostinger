@@ -1,0 +1,221 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import CouponCard from '../components/CouponCard.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+import AffiliateButton from '../components/AffiliateButton.astro';
+import FAQ from '../components/FAQ.astro';
+import Icon from '../components/Icon.astro';
+import { AFFILIATE } from '../consts';
+
+const coupons = await getCollection('coupons');
+const sorted = [...coupons].sort((a, b) => {
+  if (a.data.featured !== b.data.featured) return a.data.featured ? -1 : 1;
+  return 0;
+});
+
+const faqs = [
+  {
+    question: 'Hostinger 优惠码可以和官网促销叠加吗？',
+    answer: `可以。官网的阶梯折扣（选 48 个月）是价格基准，优惠码在这个基准上再打折。正确顺序是：先把付款时长选到最长，再在结账页输入优惠码 ${AFFILIATE.couponCode}。`,
+  },
+  {
+    question: '优惠码在续费时能用吗？',
+    answer: '通常不能。优惠码一般只对新购订单生效。续费按标准价计算，这也是续费成本高于首购的原因。建议在续费节点前主动决策。',
+  },
+  {
+    question: '为什么有些优惠码网上到处都是但输入后无效？',
+    answer: '大部分流传的优惠码已经过期或本身就是伪造的。判断方法：如果某个码要求你先完成问卷、下载软件或注册第三方服务，基本是无效的引流手段。我们只收录在结账页实际验证过生效的码。',
+  },
+  {
+    question: '黑五或双十一会有更大的折扣吗？',
+    answer: '会有。Hostinger 在黑色星期五和网络星期一的折扣力度通常是全年最大的，历史最低点出现在这几个时间。但官网的 48 个月阶梯折扣长期在售，如果你现在就需要建站，等待的时间成本可能超过省下的钱。',
+  },
+  {
+    question: '通过本站链接购买会让价格变高吗？',
+    answer: '不会。你支付的价格与直接访问 Hostinger 官网购买完全相同。联盟佣金由 Hostinger 从自己的市场预算中支付，不从你的订单金额里扣除。如果某个渠道因为佣金而提价，那是渠道的问题，不是这个模式的必然。',
+  },
+];
+
+const verifiedCount = coupons.filter((c) => c.data.verified).length;
+const lastChecked = coupons
+  .map((c) => c.data.lastChecked)
+  .sort((a, b) => b.getTime() - a.getTime())[0];
+---
+
+<BaseLayout
+  title={`Hostinger 优惠码大全（${lastChecked.toLocaleDateString('zh-CN')} 核验）`}
+  description={`Hostinger 当前可用的 ${coupons.length} 个优惠：通用优惠码 ${AFFILIATE.couponCode} 额外省 10%，48 个月付立省 75%，赠送域名与商务邮箱。所有优惠均在结账页实测验证过。`}
+  keywords={['Hostinger优惠码', 'Hostinger优惠码2026', 'Hostinger折扣码', 'Hostinger coupon']}
+  schema={{
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: 'Hostinger 优惠码列表',
+    numberOfItems: coupons.length,
+    itemListElement: sorted.map((c, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      name: c.data.title,
+      description: c.data.description,
+    })),
+  }}
+>
+  <div class="border-b border-[var(--hairline)] bg-[var(--surface-muted)]">
+    <div class="container-page py-4">
+      <Breadcrumbs items={[{ label: '优惠码大全' }]} />
+    </div>
+  </div>
+
+  {/* 页头 */}
+  <section class="relative overflow-hidden border-b border-[var(--hairline)]">
+    <div class="bg-radial-brand pointer-events-none absolute inset-0"></div>
+    <div class="container-page relative py-12 lg:py-14">
+      <div class="max-w-3xl">
+        <span class="eyebrow">
+          <Icon name="tag" size={14} />
+          全部在结账页实测验证过
+        </span>
+        <h1 class="mt-3.5 text-h1 font-extrabold">Hostinger 优惠码大全</h1>
+        <p class="mt-5 text-[1.0625rem] leading-relaxed text-soft">
+          网上大部分 Hostinger 优惠码已经失效。我们的做法是：每收录一个码，就在真实结账页
+          输入一次，确认订单金额确实减少才收录，并标注核验日期。
+        </p>
+
+        <div class="mt-7 flex flex-wrap items-center gap-3">
+          <AffiliateButton
+            category="shared"
+            campaign="coupons-hero"
+            label="直接去领取优惠"
+            size="lg"
+            variant="primary"
+          />
+          <span class="inline-flex items-center gap-2 rounded-full border border-[var(--hairline)] bg-white px-4 py-3 text-[0.8125rem]">
+            <Icon name="shield-check" size={15} class="text-accent-500" />
+            <span class="text-soft">
+              <span class="font-bold text-strong">{verifiedCount}</span> 个已验证
+            </span>
+            <span class="text-ink-300">·</span>
+            <span class="text-soft">核验于 {lastChecked.toLocaleDateString('zh-CN')}</span>
+          </span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  {/* 优惠码列表 */}
+  <section class="container-page py-14">
+    <div class="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+      {sorted.map((c) => <CouponCard coupon={c as any} />)}
+    </div>
+  </section>
+
+  {/* 叠加说明 */}
+  <section class="border-y border-[var(--hairline)] bg-[var(--surface-muted)] py-14">
+    <div class="container-page">
+      <div class="mx-auto max-w-4xl">
+        <div class="text-center">
+          <span class="eyebrow justify-center">
+            <Icon name="percent" size={14} />
+            叠加计算
+          </span>
+          <h2 class="mt-3 text-h2 font-bold">这些优惠组合起来能省多少</h2>
+          <p class="mt-3.5 text-[0.9375rem] leading-relaxed text-soft">
+            以 Premium 套餐 48 个月付为例，把官方阶梯折扣和优惠码叠加后的实际金额：
+          </p>
+        </div>
+
+        <div class="mt-9 overflow-hidden rounded-2xl border border-[var(--hairline)] bg-white shadow-soft">
+          <table class="matrix-table">
+            <caption class="sr-only">Premium 套餐优惠叠加计算</caption>
+            <thead>
+              <tr>
+                <th scope="col">项目</th>
+                <th scope="col" class="text-right">金额</th>
+                <th scope="col" class="text-right">说明</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="font-medium text-strong">按月付 12 个月的年成本</td>
+                <td class="text-right tabular-nums text-soft">¥6,600</td>
+                <td class="text-right text-[0.8125rem] text-faint">¥55/月 × 12</td>
+              </tr>
+              <tr>
+                <td class="font-medium text-strong">48 个月付的官方促销价</td>
+                <td class="text-right tabular-nums text-soft">¥1,056</td>
+                <td class="text-right text-[0.8125rem] text-faint">省 84%</td>
+              </tr>
+              <tr class="!bg-brand-50/60">
+                <td class="font-semibold text-strong">
+                  叠加优惠码 {AFFILIATE.couponCode}（−10%）
+                </td>
+                <td class="text-right font-bold tabular-nums text-brand-700">−¥74</td>
+                <td class="text-right text-[0.8125rem] text-brand-700">结账页输入生效</td>
+              </tr>
+              <tr>
+                <td class="font-semibold text-strong">赠送 1 年 .com 域名</td>
+                <td class="text-right font-bold tabular-nums text-accent-700">−¥75</td>
+                <td class="text-right text-[0.8125rem] text-faint">原本需另购</td>
+              </tr>
+              <tr>
+                <td class="font-semibold text-strong">赠送 1 年商务邮箱</td>
+                <td class="text-right font-bold tabular-nums text-accent-700">−¥100</td>
+                <td class="text-right text-[0.8125rem] text-faint">原本需另购</td>
+              </tr>
+              <tr class="!border-t-2 !border-brand-200">
+                <td class="!py-5 text-[1rem] font-extrabold text-strong">实付合计</td>
+                <td class="!py-5 text-right">
+                  <span class="price-now text-xl">¥982</span>
+                  <p class="mt-1 text-[0.7rem] font-normal text-soft">48 个月，合 ¥20.5/月</p>
+                </td>
+                <td class="!py-5 text-right">
+                  <span class="badge badge-accent">含 ¥175 赠品</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p class="mt-5 text-center text-[0.75rem] text-faint">
+          价格基于 2026 年 {lastChecked.getMonth() + 1} 月核验的官网数据，实际金额以结账页显示为准。
+        </p>
+      </div>
+    </div>
+  </section>
+
+  {/* FAQ */}
+  <section class="container-page py-14">
+    <div class="mx-auto max-w-3xl">
+      <FAQ
+        faqs={faqs}
+        title="关于优惠码的常见问题"
+        subtitle="叠加规则、有效期、真伪判断，以及联盟佣金会不会影响你的价格。"
+        emitSchema
+      />
+
+      <div class="mt-10 rounded-2xl border-2 border-brand-200 bg-brand-50/60 p-8 text-center">
+        <h2 class="text-h3 font-bold">不用再找了，最好的组合就是这两个</h2>
+        <p class="mx-auto mt-3 max-w-lg text-[0.9375rem] leading-relaxed text-soft">
+          选 48 个月付款时长拿到官方最大折扣，结账页输入
+          <code class="mx-1 rounded bg-white px-1.5 py-0.5 font-mono text-[0.875rem] font-bold text-brand-700">
+            {AFFILIATE.couponCode}
+          </code>
+          再省 10%。这两个动作就覆盖了 95% 的省钱空间。
+        </p>
+        <div class="mt-6 flex flex-wrap justify-center gap-3">
+          <AffiliateButton
+            category="shared"
+            campaign="coupons-footer"
+            label="领取 Hostinger 优惠"
+            size="lg"
+            variant="primary"
+          />
+          <a href="/tools/plan-finder" class="btn btn-lg btn-outline">
+            <Icon name="target" size={18} />
+            先确定选哪个套餐
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

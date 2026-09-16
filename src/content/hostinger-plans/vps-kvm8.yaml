@@ -1,0 +1,74 @@
+name: KVM 8
+fullName: Hostinger VPS KVM 8
+category: vps
+series: KVM
+order: 40
+tagline: 8 核 32GB，重度业务与异构服务的上限
+pricing:
+  promoPrice: 150
+  regularPrice: 374
+  renewalPrice: 374
+  termLabel: 24 个月
+  currency: ¥
+  upfrontTotal: 3600
+rating: 4.6
+reviewCount: 640
+bestValue: false
+recommended: false
+audience:
+  - high-traffic
+  - agency
+  - developer
+websites: 不限
+storage: 400 GB NVMe SSD
+bandwidth: 32 TB / 月
+specs:
+  - label: vCPU
+    value: 8 核
+  - label: 内存
+    value: 32 GB
+  - label: 存储
+    value: 400 GB NVMe
+  - label: 月流量
+    value: 32 TB
+  - label: 独立 IPv4
+    value: 2 个
+  - label: 管理面板
+    value: hPanel + 完整 root
+  - label: 可托管网站
+    value: 不限
+features:
+  - label: 完整 root 权限
+    included: true
+  - label: 独立 IP 地址
+    included: true
+    note: 含 2 个 IPv4
+  - label: 每日自动备份
+    included: true
+  - label: 24/7 在线客服
+    included: true
+  - label: AI 建站助手
+    included: false
+  - label: 免费网站迁移
+    included: true
+  - label: 一键装 CyberPanel
+    included: true
+  - label: 32 TB 大带宽
+    included: true
+discountBadge: 省 60%
+freebies:
+  - 2 个独立 IPv4
+  - 完整 root 权限
+  - 每日快照备份
+  - 免费网站迁移
+moneyBackDays: 30
+affiliate:
+  campaign: vps-kvm8
+verdict: 8 核 32GB 配 2 个独立 IP，可以做多服务隔离部署 —— 比如把面向公网的应用和只对内网开放的服务拆到不同 IP 上，安全边界清晰。适合把 VPS 当作轻量私有云来用的团队。
+bestFor: 把单台机器当私有云用的技术团队、需要 IP 隔离的多租户场景
+caveat: 到了这个配置，价格已经进入 Cloud Professional 的区间。如果业务是流量驱动且有突发峰值，Cloud 的自动扩容比堆硬件更划算。
+relatedReviews:
+  - hostinger-vps-review
+  - hostinger-vps-vs-cloud
+active: true
+lastChecked: 2026-09-10

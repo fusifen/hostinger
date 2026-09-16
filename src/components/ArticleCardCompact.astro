@@ -1,0 +1,63 @@
+---
+/**
+ * ArticleCardCompact —— 紧凑形态卡片（侧边栏「相关文章」使用）
+ * 从 ArticleCard 拆出：Astro 的 frontmatter 不支持 JSX 早返回，
+ * 因此每个形态独立成组件，由 ArticleCard 按 variant 分发。
+ */
+import Icon from './Icon.astro';
+
+interface Props {
+  href: string;
+  title: string;
+  dateStr: string;
+  readTime: number;
+  category: string;
+  theme: string;
+  class?: string;
+}
+
+const { href, title, dateStr, readTime, category, theme, class: className = '' } = Astro.props;
+
+const themeGradient: Record<string, string> = {
+  'gradient-1': 'from-brand-600 via-brand-500 to-accent-500',
+  'gradient-2': 'from-brand-700 via-brand-500 to-brand-300',
+  'gradient-3': 'from-accent-600 via-accent-500 to-brand-500',
+  'gradient-4': 'from-brand-800 via-brand-600 to-accent-400',
+  'gradient-5': 'from-ink-800 via-brand-700 to-brand-500',
+  'gradient-6': 'from-accent-700 via-brand-600 to-brand-400',
+};
+
+const gradient = themeGradient[theme] ?? themeGradient['gradient-1'];
+
+const iconName =
+  category === 'reviews'
+    ? 'star'
+    : category === 'tutorials'
+      ? 'book'
+      : category === 'deals'
+        ? 'tag'
+        : 'gauge';
+---
+
+<a href={href} class:list={['group flex gap-3.5', className]}>
+  <span
+    class:list={[
+      'flex h-14 w-14 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br text-white',
+      gradient,
+    ]}
+  >
+    <Icon name={iconName} size={20} />
+  </span>
+  <span class="min-w-0 flex-1">
+    <span
+      class="line-clamp-2 text-[0.875rem] font-semibold leading-snug text-[var(--text-strong)] transition-colors group-hover:text-brand-700"
+    >
+      {title}
+    </span>
+    <span class="mt-1 flex items-center gap-2 text-[0.7rem] text-[var(--text-faint)]">
+      <span>{dateStr}</span>
+      <span class="text-ink-300">·</span>
+      <span>{readTime} 分钟</span>
+    </span>
+  </span>
+</a>
